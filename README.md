@@ -3,4 +3,4 @@
 * save and load a game. 
 
 
-  Calendar: This is a simple budget calendar
+Calendar: This is a simple budget calendar
