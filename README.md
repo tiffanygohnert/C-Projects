@@ -5,4 +5,4 @@
 
 Calendar: This is a simple budget calendar
 
-All week tar files are c++ projects dealing with things such as Linked-list, Stack, Heap, Graph, Array, Vector, etc. 
+All week tar files are C++ projects dealing with Data Structures such as Linked-list, Stack, Heap, Graph, Array, Vector, etc. 
