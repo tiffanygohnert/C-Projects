@@ -1,0 +1,828 @@
+infix.h0000600003530400007650000000153012710321734012153 0ustar  cs235s3g5student/***********************************************************************
+* Header:
+*    INFIX   
+* Summary:
+*    This will contain just the prototype for the convertInfixToPostfix()
+*    function
+* Author
+*    <your names here>
+************************************************************************/
+
+#ifndef INFIX_H
+#define INFIX_H
+
+/*****************************************************
+ * TEST INFIX TO POSTFIX
+ * Prompt the user for infix text and display the
+ * equivalent postfix expression
+ *****************************************************/
+void testInfixToPostfix();
+
+/*****************************************************
+ * TEST INFIX TO ASSEMBLY
+ * Prompt the user for infix text and display the
+ * resulting assembly instructions
+ *****************************************************/
+void testInfixToAssembly();
+
+#endif // INFIX_H
+
+stack.h0000600003530400007650000001233212710323131012136 0ustar  cs235s3g5student#ifndef  STACK_H
+#define STACK_H
+#include <cassert>
+#include <iostream>
+#include <fstream>
+#include <stack>
+using namespace std;
+
+
+//stack class
+template <class T>
+class Stack
+{
+
+  public:
+
+   //default constructor
+  Stack():  Size(0),Capacity(0), vector(0x00000000){}
+
+   //destructor
+   ~Stack(){};
+   // { if (Size) delete [] vector; }
+
+   //non-default constructor Needed for test 1
+   Stack(int capacity) throw (const char *);
+
+   //copy constructor
+   Stack(const Stack& rhs)throw (const char *);
+
+
+   //operator=
+   // assignment operator
+   Stack & operator = (const Stack & rhs)throw (const char *)
+   {
+           try
+           {  Stack temp = rhs;
+              Capacity = temp.Capacity;
+              vector = temp.vector;
+              Size = temp.Size;
+              return *this;
+           }
+           catch (std::bad_alloc)
+           {
+              throw "ERROR: Unable to allocate a new buffer for Stack";
+           }
+
+   }
+
+   //empty()
+   bool empty()const {return Size ==0;  }
+   //clear()
+   void clear(){Size =0; }
+
+   //size()
+   int size()const{return Size; }
+   //capacity()
+   int capacity()const {   return Capacity;}
+   
+   int clear() const {Size =0; return Size; }; 
+
+   //push_back
+   void push(const T & t) throw (const char *);
+   void pop() throw (const char *);
+   T top() throw (const char *); 
+   
+
+   // return an iterator to the beginning of the list
+   //StackIterator <T> begin() { return StackIterator<T>(vector); }
+
+   // return an iterator to the end of the list
+   // StackIterator <T> end() { return StackIterator<T>(vector + Size);};
+
+
+
+   // operators[]
+   T & operator [](int& index) const throw(const char *)
+   {
+      if (Capacity < 0 || Capacity < Size)
+         throw "ERROR: Invalid index\n";
+      return vector[index];
+   }
+
+   T & operator [](int& index) throw(const char *)
+   {
+      if (Capacity < 0 || Capacity < Size)
+         throw "ERROR: Invalid index\n";
+      return vector[index];
+   }
+
+
+
+
+  private:
+
+   int Size;
+   T * vector;
+   int Capacity;
+  
+
+
+};
+
+/**********************************************
+ * Stack : NON-DEFAULT CONSTRUCTOR
+ * Preallocate the Stack to "capacity"
+ **********************************************/
+template <class T>
+Stack <T> :: Stack(int capacity) throw (const char *)
+{
+   assert(capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (capacity == 0)
+   {
+      this->Capacity = this->Size = 0;
+      this->vector = 0x00000000;
+      return;
+   }
+
+   // attempt to allocate
+            try
+            {
+               vector = new T[capacity];
+
+            }
+            catch (std::bad_alloc)
+            {
+               //problem for test 1
+               throw "ERROR: Unable to allocate buffer";
+
+
+            }
+
+
+            // copy over the stuff
+            this->Capacity = capacity;
+            this->Size = 0;
+
+}
+
+/*******************************************
+ * Stack:: COPY CONSTRUCTOR
+ *******************************************/
+template <class T>
+Stack <T> :: Stack(const Stack <T> & rhs) throw (const char *)
+{
+   assert(rhs.Capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (rhs.Capacity == 0)
+   {
+      Capacity = Size = 0;
+      vector = 0x00000000;
+      return;
+   }
+
+   // attempt to allocate
+          try
+          {
+             vector = new T[rhs.Capacity];
+          }
+          catch (std::bad_alloc)
+          {
+             throw "ERROR: Unable to allocate buffer";
+          }
+
+          // copy over the stuff
+          assert(rhs.Size >= 0 && rhs.Size <= rhs.Capacity);
+          Capacity = rhs.Capacity;
+          Size = rhs.Size;
+          for (int i = 0; i < Size; i++)
+             vector[i] = rhs.vector[i];
+}
+
+/***************************************************
+ * Stack :: push
+ * Insert an item on the end of the Stack
+ **************************************************/
+template <class T>
+void Stack <T> :: push(const T & t) throw (const char *)
+{
+// try
+//{
+//if (Capacity==0 || Capacity ==Size)
+//{
+//if (Capacity==0)
+//{
+//Capacity=1;
+//vector = new T[Capacity]; }
+//else
+//Capacity *=2;
+//
+//}
+//}
+//catch (std::bad_alloc)
+//{
+//throw "ERROR: Unable to allocate buffer\
+//";
+//}
+//vector[Size++] = t;
+	if (Size == 0)
+	{
+		delete[] vector;
+		Capacity = 1;
+		vector = new T[Capacity];
+	}
+	if (Capacity == Size)
+	{
+		Capacity *= 2;
+		T * tempArray = new T[Capacity];
+		for (int i = 0; i < Size; i++)
+			tempArray[i] = vector[i];
+		delete[] vector;
+		vector = tempArray;
+	}
+	// add an item to the end
+	try
+	{
+		vector[Size++] = t;
+	}
+	catch (std::bad_alloc)
+	{
+		throw "ERROR: Unable to allocate a new buffer for Vector";
+	}
+}
+
+//pop()
+/***************************************************
+ * Stack :: pop
+ * Removes an item from the end of the stack
+ **************************************************/
+template <class T>
+ void Stack <T> :: pop() throw (const char *)
+{
+	if (empty())
+		throw "ERROR: Unable to pop from an empty Stack";
+	vector[Size--]; 
+}
+
+
+//top()
+/***************************************************
+ * Stack :: top
+ * Returns the item currently at the end of the stack
+ **************************************************/
+template <class T>
+T Stack <T> :: top() throw (const char *)
+{
+	if (empty())
+		throw "ERROR: Unable to reference the element from an empty Stack";
+	return vector[Size - 1];   
+}
+
+
+//convertInfixToPostfix() 
+
+#endif
+infix.cpp0000600003530400007650000001155012711315565012517 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 02, Stack
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Tiffany Gohnert, John Vehikite
+ * Summary:
+ *    This program will implement the testInfixToPostfix()
+ *    and testInfixToAssembly() functions
+ ************************************************************************/
+
+#include <iostream>    // for ISTREAM and COUT
+#include <string>      // for STRING
+#include <cassert>     // for ASSERT
+#include "stack.h"     // for STACK
+using namespace std;
+
+int getWeight(char ch) {
+   switch (ch) {
+      case '^': return 3;
+      case '%':
+	  case '/':
+      case '*': return 2;
+      case '+':
+      case '-': return 1;
+      default : return 0;
+   }
+}
+
+const string SPACE ;
+/*****************************************************
+ * CONVERT INFIX TO POSTFIX
+ * Convert infix equation "5 + 2" into postifx "5 2 +"
+ *****************************************************/
+string convertInfixToPostfix(const string & infix)
+{
+    string postfix ;  // postfix expression
+const string SPACE = " ";
+  Stack <char>s;
+   int weight;
+ int i = 0;
+   //int k ;
+   char k; 
+   char ch;
+   
+
+     while (i < infix.length()) {
+      ch = infix[i];
+      if (ch == '(') {
+         // simply push the opening parenthesis
+         s.push(ch);
+         i++;
+         continue;
+      }
+	  if (ch == ' ')
+	  {
+		  i++;
+		  continue;
+	  }
+      if (ch == ')') {
+         // if we see a closing parenthesis,
+         // pop of all the elements and append it to
+         // the postfix expression till we encounter
+         // a opening parenthesis
+         while (!s.empty() && s.top() != '(') {
+            k = s.top();
+            s.pop();
+			postfix.append(SPACE + k);
+
+         }
+         // pop off the opening parenthesis also
+         if (!s.empty()) {
+            s.pop();
+         }
+         i++;
+         continue;
+      }
+      weight = getWeight(ch);
+      if (weight == 0) {
+         // we saw an operand
+         // simply append it to postfix expression
+         //k = ch;
+postfix.append(SPACE + ch);
+
+      }
+      else {
+         // we saw an operator
+         if (s.empty()) {
+            // simply push the operator onto stack if
+            // stack is empty
+            s.push(ch);
+         }
+         else {
+            // pop of all the operators from the stack and
+            // append it to the postfix expression till we
+            // see an operator with a lower precedence that
+            // the current operator
+            while (!s.empty() && s.top() != '(' &&
+                  weight <= getWeight(s.top())) {
+               k = s.top();
+               s.pop();
+			   postfix.append(SPACE + k);
+
+            }
+            // push the current operator onto stack
+            s.push(ch);
+         }
+      }
+      i++;
+   }
+   // pop of the remaining operators present in the stack
+   // and append it to postfix expression 
+   while (!s.empty()) {
+     k = s.top();
+      s.pop();
+	  postfix.append(SPACE + k);
+	 
+   }
+   //postfix[k] = 0; // null terminate the postfix expression }
+
+return postfix; }
+/*****************************************************
+ * TEST INFIX TO POSTFIX
+ * Prompt the user for infix text and display the
+ * equivalent postfix expression
+ *****************************************************/
+void testInfixToPostfix()
+{
+   string input;
+   cout << "Enter an infix equation.  Type \"quit\" when done.\n";
+   
+   do
+   {
+      // handle errors
+      if (cin.fail())
+      {
+         cin.clear();
+         cin.ignore(256, '\n');
+      }
+      
+      // prompt for infix
+      cout << "infix > ";
+      getline(cin, input);
+
+      // generate postfix
+      if (input != "quit")
+      {
+         string postfix = convertInfixToPostfix(input);
+         cout << "\tpostfix: " << postfix << endl << endl;
+      }
+   }
+   while (input != "quit");
+}
+
+/**********************************************
+ * CONVERT POSTFIX TO ASSEMBLY
+ * Convert postfix "5 2 +" to assembly:
+ *     LOAD 5
+ *     ADD 2
+ *     STORE VALUE1
+ **********************************************/
+string convertPostfixToAssembly(const string & postfix)
+{
+   string assembly;
+
+   return assembly;
+}
+
+/*****************************************************
+ * TEST INFIX TO ASSEMBLY
+ * Prompt the user for infix text and display the
+ * resulting assembly instructions
+ *****************************************************/
+void testInfixToAssembly()
+{
+   string input;
+   cout << "Enter an infix equation.  Type \"quit\" when done.\n";
+
+   do
+   {
+      // handle errors
+      if (cin.fail())
+      {
+         cin.clear();
+         cin.ignore(256, '\n');
+      }
+      
+      // prompt for infix
+      cout << "infix > ";
+      getline(cin, input);
+      
+      // generate postfix
+      if (input != "quit")
+      {
+         string postfix = convertInfixToPostfix(input);
+         cout << convertPostfixToAssembly(postfix);
+      }
+   }
+   while (input != "quit");
+      
+}
+week02.cpp0000600003530400007650000002121312710466610012471 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 03, Stack
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise the Stack class.  When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>    // for CIN and COUT
+#include <string>      //
+#include "stack.h"     // your Stack class should be in stack.h
+#include "infix.h"     // for testInfixToPostfix() and testInfixToAssembly()
+using namespace std;
+
+
+// prototypes for our four test functions
+void testSimple();
+void testPush();
+void testPop();
+void testErrors();
+
+// To get your program to compile, you might need to comment out a few
+// of these. The idea is to help you avoid too many compile errors at once.
+// I suggest first commenting out all of these tests, then try to use only
+// TEST1.  Then, when TEST1 works, try TEST2 and so on.
+#define TEST1   // for testSimple()
+#define TEST2   // for testPush()
+#define TEST3   // for testPop()
+#define TEST4   // for testErrors()
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu
+   cout << "Select the test you want to run:\n";
+   cout << "\t1. Just create and destroy a Stack.\n";
+   cout << "\t2. The above plus push items onto the Stack.\n";
+   cout << "\t3. The above plus pop items off the stack.\n";
+   cout << "\t4. The above plus exercise the error handling.\n";
+   cout << "\ta. Infix to Postfix.\n";
+   cout << "\tb. Extra credit: Infix to Assembly.\n";
+
+   // select
+   char choice;
+   cout << "> ";
+   cin  >> choice;
+   switch (choice)
+   {
+      case 'a':
+         cin.ignore();
+         testInfixToPostfix();
+         break;
+      case 'b':
+         cin.ignore();
+         testInfixToAssembly();
+         break;
+      case '1':
+         testSimple();
+         cout << "Test 1 complete\n";
+         break;
+      case '2':
+         testPush();
+         cout << "Test 2 complete\n";
+         break;
+      case '3':
+         testPop();
+         cout << "Test 3 complete\n";
+         break;
+      case '4':
+         testErrors();
+         cout << "Test 4 complete\n";
+         break;
+      default:
+         cout << "Unrecognized command, exiting...\n";
+   }
+
+   return 0;
+}
+
+/*******************************************
+ * TEST SIMPLE
+ * Very simple test for a Stack: create and destroy
+ ******************************************/
+void testSimple()
+{
+#ifdef TEST1
+   try
+   {
+      // Test 1.a: bool Stack with default constructor
+      cout << "Create a bool Stack using default constructor\n";
+      Stack <bool> s1;
+      cout << "\tSize:     " << s1.size()                   << endl;
+      cout << "\tCapacity: " << s1.capacity()               << endl;
+      cout << "\tEmpty?    " << (s1.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.b: double Stack with non-default constructor
+      cout << "Create a double Stack using the non-default constructor\n";
+      Stack <double> s2(10 /*capacity*/);
+      cout << "\tSize:     " << s2.size()                   << endl;
+      cout << "\tCapacity: " << s2.capacity()               << endl;
+      cout << "\tEmpty?    " << (s2.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.c: copy the Stack using the copy constructor
+      {
+         cout << "Create a double Stack using the copy constructor\n";
+         Stack <double> s3(s2);
+         cout << "\tSize:     " << s3.size()                   << endl;
+         cout << "\tCapacity: " << s3.capacity()               << endl;
+         cout << "\tEmpty?    " << (s3.empty() ? "Yes" : "No") << endl;
+      }
+
+      // Test 1.d: copy the Stack using the assignment operator
+      cout << "Copy a double Stack using the assignment operator\n";
+      Stack <double> s4(2);
+      s4 = s2;
+      cout << "\tSize:     " << s4.size()                   << endl;
+      cout << "\tCapacity: " << s4.capacity()               << endl;
+      cout << "\tEmpty?    " << (s4.empty() ? "Yes" : "No") << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }   
+#endif //TEST1
+}
+
+/*******************************************
+ * TEST PUSH
+ * Add a whole bunch of items to the stack.  This will
+ * test the stack growing algorithm. It requires
+ * Stack::push
+ *****************************************/
+void testPush()
+{
+#ifdef TEST2
+   try
+   {
+      // create
+      Stack <int> s;
+
+      {
+         Stack <int> sTemp;
+         cout << "Enter numbers, type 0 when done\n";
+         int number;
+         do
+         {
+            cout << "\t> ";
+            cin  >> number;
+            if (number)
+               sTemp.push(number);
+         }
+         while (number);
+
+         // display how big it is
+         cout << "After filling the Stack, the size is:\n";
+         cout << "\tSize:     " << sTemp.size() << endl;
+         cout << "\tCapacity: " << sTemp.capacity() << endl;
+         cout << "\tEmpty?    " << (sTemp.empty() ? "Yes" : "No") << endl;
+         
+         // copy the stack to s and delete sTemp
+         s = sTemp;
+         while (!sTemp.empty())
+            sTemp.pop();
+      }
+
+      // display how big it is
+      cout << "After copying the Stack to a new Stack, the size is:\n";
+      cout << "\tSize:     " << s.size() << endl;
+      cout << "\tCapacity: " << s.capacity() << endl;
+      cout << "\tEmpty?    " << (s.empty() ? "Yes" : "No") << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }
+   
+#endif // TEST2   
+}
+
+#ifdef TEST3
+/*******************************************
+ * DISPLAY
+ * Display the contents of the stack. We will
+ * assume that T is a data-type that has the
+ * insertion operator defined.
+ *******************************************/
+template <class T>
+ostream & operator << (ostream & out, Stack <T> rhs) throw (const char *)
+{
+   // we need to make a copy of the stack that is backwards
+   Stack <T> backwards;
+   while (!rhs.empty())
+   {
+      backwards.push(rhs.top());
+      rhs.pop();
+   }
+
+   // now we will display this one
+   out << "{ ";
+   while (!backwards.empty())
+   {
+      out << backwards.top() << ' ';
+      backwards.pop();
+   }
+   out << '}';
+
+   return out;   
+}
+#endif // TEST3
+
+/*******************************************
+ * TEST POP
+ * We will test both Stack::pop() and Stack::top()
+ * to make sure the stack looks the way we expect
+ * it to look.
+ ******************************************/
+void testPop()
+{
+#ifdef TEST3
+   // create
+   cout << "Create a string Stack with the default constructor\n";
+   Stack <string> s;
+
+   // instructions
+   cout << "\tTo add the word \"dog\", type +dog\n";
+   cout << "\tTo pop the word off the stack, type -\n";
+   cout << "\tTo see the top word, type *\n";
+   cout << "\tTo quit, type !\n";
+
+   // interact
+   char instruction;
+   string word;
+   try
+   {
+      do
+      {
+         cout << "\t" << s << " > ";
+         cin  >> instruction;
+         switch (instruction)
+         {
+            case '+':
+               cin >> word;
+               s.push(word);
+               break;
+            case '-':
+               s.pop();
+               break;
+            case '*':
+               cout << s.top() << endl;
+               break;
+            case '!':
+               cout << "\tSize:     " << s.size() << endl;
+               cout << "\tCapacity: " << s.capacity() << endl;
+               cout << "\tEmpty?    " << (s.empty() ? "Yes" : "No") << endl;
+               break;
+            default:
+               cout << "\tInvalid command\n";
+         }            
+      }
+      while (instruction != '!');
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST3
+}
+
+/*******************************************
+ * TEST ERRORS
+ * Numerous error conditions will be tested
+ * here, including bogus popping and the such
+ *******************************************/
+void testErrors()
+{
+#ifdef TEST4
+   // create
+   Stack <char> s;
+
+   // test using Top with an empty stack
+   try
+   {
+      s.top();
+      cout << "BUG! We should not be able to top() with an empty stack!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tStack::top() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }
+
+   // test using Pop with an empty stack
+   try
+   {
+      s.pop();
+      cout << "BUG! We should not be able to pop() with an empty stack!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tStack::pop() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }      
+#endif // TEST4
+}
+makefile0000600003530400007650000000166712711305574012405 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 02, Infix to Postfix
+#     Brother JonesL, CS235
+# Author:
+#     Tiffany Gohnert John Vehikite
+# Summary:
+#     Change infix equation to postfix equation
+# Time:
+#     5+ hours
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: stack.h week02.o infix.o 
+	g++ -o a.out week02.o infix.o 
+	tar -cf week02.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      week02.o       : the driver program
+#      infix.o        : the logic for the infix --> postfix program
+##############################################################
+week02.o: stack.h infix.h week02.cpp
+	g++ -c week02.cpp
+
+infix.o: stack.h infix.h infix.cpp
+	g++ -c infix.cpp
+
