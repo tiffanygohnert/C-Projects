@@ -1,0 +1,1136 @@
+deque.h0000600003530400007650000002347112715742055012161 0ustar  cs235s3g5student#ifndef  DEQUE_H
+#define DEQUE_H
+#include <cassert>
+#include <iostream>
+#include <fstream>
+#include <stack>
+using namespace std;
+
+
+//stack class
+template <class T>
+class Deque
+{
+
+  public:
+
+   //default constructor
+  Deque():  Size(0),Capacity(0), vector(0x00000000), myFront(-1), myBack(-1){}
+
+   //destructor
+   ~Deque(){};
+   // { if (Size) delete [] vector; }
+
+   //non-default constructor Needed for test 1
+   Deque(int capacity) throw (const char *);
+
+   //copy constructor
+   Deque(const Deque& rhs)throw (const char *);
+
+
+   // assignment operator
+   Deque & operator = (const Deque & rhs)throw (const char *)
+   {
+           try
+           {  Deque temp = rhs;
+              Capacity = temp.Capacity;
+              vector = temp.vector;
+              Size = temp.Size;
+			  myFront = temp.myFront; 
+			  myBack = temp.myBack; 
+              return *this;
+           }
+           catch (std::bad_alloc)
+           {
+              throw "ERROR: Unable to allocate a new buffer for Deque";
+           }
+
+   }
+
+   //empty()
+   bool empty()const {return Size ==0;  }
+   //clear()
+   void clear(){Size =0; }
+
+   //size()
+   int size()const{return Size; }
+   //capacity()
+   int capacity()const {   return Capacity;}
+   
+   int clear() const {Size =0; return Size; }; 
+
+   //push_back
+   void push_back(const T & t) throw (const char *);
+   void push_front(const T & t) throw (const char *);
+   void pop_front() throw (const char *);
+   void pop_back() throw (const char *);
+    T front() throw (const char *); 
+	 T back() throw (const char *); 
+   
+
+   // return an iterator to the beginning of the list
+   //DequeIterator <T> begin() { return DequeIterator<T>(vector); }
+
+   // return an iterator to the end of the list
+   // DequeIterator <T> end() { return DequeIterator<T>(vector + Size);};
+
+
+
+   // operators[]
+   T & operator [](int& index) const throw(const char *)
+   {
+      if (Capacity < 0 || Capacity < Size)
+         throw "ERROR: Invalid index\n";
+      return vector[index];
+   }
+
+   T & operator [](int& index) throw(const char *)
+   {
+      if (Capacity < 0 || Capacity < Size)
+         throw "ERROR: Invalid index\n";
+      return vector[index];
+   }
+
+
+
+
+  private:
+
+   int Size;
+   T * vector;
+   int Capacity;
+   int myFront; 
+   int myBack; 
+  
+
+
+};
+
+/**********************************************
+ * Deque : NON-DEFAULT CONSTRUCTOR
+ * Preallocate the Deque to "capacity"
+ **********************************************/
+template <class T>
+Deque <T> :: Deque(int capacity) throw (const char *)
+{
+   assert(capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (capacity == 0)
+   {
+      this->Capacity = this->Size = 0;
+      this->vector = 0x00000000;
+	  this->myFront= 0; 
+	  this->myBack=1; 
+      return;
+   }
+
+   // attempt to allocate
+            try
+            {
+               vector = new T[capacity];
+
+            }
+            catch (std::bad_alloc)
+            {
+               //problem for test 1
+               throw "ERROR: Unable to allocate buffer";
+
+
+            }
+
+
+            // copy over the stuff
+            this->Capacity = capacity;
+            this->Size = 0;
+			this->myBack=0; 
+			this->myFront=0; 
+
+}
+
+/*******************************************
+ * Deque:: COPY CONSTRUCTOR
+ *******************************************/
+template <class T>
+Deque <T> :: Deque(const Deque <T> & rhs) throw (const char *)
+{
+   assert(rhs.Capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (rhs.Capacity == 0)
+   {
+      Capacity = Size = 0;
+      vector = 0x00000000;
+	  myFront=myBack=0; //sets capacity to 1; 
+      return;
+   }
+
+   // attempt to allocate
+          try
+          {
+             vector = new T[rhs.Capacity];
+          }
+          catch (std::bad_alloc)
+          {
+             throw "ERROR: Unable to allocate buffer";
+          }
+
+          // copy over the stuff
+          assert(rhs.Size >= 0 && rhs.Size <= rhs.Capacity);
+          this->Capacity = rhs.Capacity;
+          this->Size = rhs.Size;
+		  this->myFront = rhs.myFront; 
+		  this->myBack = rhs.myBack;  
+       // for (int i = myFront; i < Size; i++)
+           // vector[i] = rhs.vector[i];
+			//for (int i = 0; i < Size; i++)
+         // vector[i] = rhs.vector[i];
+		 
+		 if ((myFront==0) && (myBack > myFront) && (myBack <= Capacity))
+		  {
+		  for(int i=myFront; i <myBack; i++)
+		  vector[i]=rhs.vector[i];
+		  if (myBack +1 <Capacity)
+		  {
+		  for (int i=myBack; i <Capacity; i++)
+		  vector[i] = T(); 
+		  }
+		  }
+		  
+		  else if ((myFront>0) && (myBack >myFront)&& (myBack <=Capacity))
+		  {
+		  for (int i =myFront; i<myBack; i++)
+		  vector[i]=rhs.vector[i]; 
+		  if (myBack +1 < Capacity)
+		  {
+		  for (int i = myBack; i < Capacity; i++)
+		  vector[i] = T(); 
+		  for (int i=0; i<myFront; i++)
+		  vector[i] = T();
+		  }
+		  }
+		  
+		   else if ((myFront>0) && (myBack <myFront)&& (myFront <=Capacity))
+		  {
+		  for (int i =myFront; i<Capacity; i++)
+		  vector[i]=rhs.vector[i]; 
+		  
+		  for (int i = 0; i < myBack; i++)
+		  vector[i] = rhs.vector[i]; 
+		  for (int i=myBack; i<myFront; i++)
+		  vector[i] = T();
+		  }
+		  
+		  
+		  else if (empty() && Capacity >0)
+		  {
+		  for (int i=0; i<Capacity; i++)
+		  vector[i]=T(); 
+		  }
+		 
+}
+
+/***************************************************
+ * Deque :: push_back
+ * Insert an item on the end of the Deque
+ **************************************************/
+template <class T>
+void Deque <T> :: push_back(const T & t) throw (const char *)
+{
+
+	if (this->Capacity == 0)
+	{
+		delete[] vector;
+		Capacity = 1;
+		this->vector = new T[Capacity];
+		
+		//this->vector=vector; 
+		this->Capacity=1; 
+		this->myFront=0; 
+		this->myBack=1; 
+		this->Size=0; 
+	}
+
+	/*if (Capacity == Size)
+	{
+		Capacity *= 2;
+	}*/
+
+if(myBack==Capacity)
+	myBack=0; 
+this->vector[myBack]=t; 
+myBack++; 
+Size++; 
+
+	/*int newBack = (myBack + 1) % Capacity;
+	if (newBack != myFront)
+	{
+		vector[myBack] = t;
+		myBack = newBack;
+	}
+	else
+	{
+		cerr << "Queue full!";
+		exit(1);
+	}*/
+	
+	/*T * tempArray = new T[Capacity];
+	tempArray[myBack] = t;
+	for (int i = 0; i < this->Size - 1; i++)
+	{
+		tempArray[i] = this->vector[i];
+	}
+	delete[] this->vector;
+	this->vector = tempArray;
+	++myBack;
+	++Size;*/
+
+if (Capacity == Size)
+{
+	try
+	{
+		Capacity *= 2;
+		T * tempArray = new T[Capacity];
+		for (int i = 0; i < this->Size; i++)
+		{
+			tempArray[i] = this->vector[i];
+		}
+		delete[] this->vector;
+		this->vector = tempArray;
+
+
+	}
+	catch (std::bad_alloc)
+	{
+		throw "ERROR: Unable to allocate a new buffer for Vector";
+	}
+
+
+
+	}
+
+}
+
+/***************************************************
+* Deque :: push_front
+* Insert an item on the end of the Deque
+**************************************************/
+template <class T>
+void Deque <T> ::push_front(const T & t) throw (const char *)
+{
+
+	if (this->Capacity == 0)
+	{
+		delete[] vector;
+		Capacity = 1;
+		this->vector = new T[Capacity];
+
+		//this->vector=vector; 
+		this->Capacity = 1;
+		this->myFront = 0;
+		this->myBack = 1;
+		this->Size = 0;
+	}
+
+	
+
+
+	if (myBack == Capacity)
+		myBack = 0;
+	/*this->vector[myBack] = t;
+	myBack++;
+	Size++;*/
+
+	T * tempArray = new T[Capacity];
+	tempArray[0] = t;
+	for (int i = 1; i < (this->Size + 1); i++)
+	{
+		tempArray[i] = this->vector[i - 1];
+	}
+	delete[] this->vector;
+	this->vector = tempArray;
+	this->myFront = 0;
+	this->myBack++;
+	this->Size++;
+	
+	if (Capacity == Size)
+	{
+		try
+		{
+			Capacity *= 2;
+			T * tempArray = new T[Capacity];
+			for (int i = 0; i < this->Size; i++)
+			{
+				tempArray[i] = this->vector[i];
+			}
+			delete[] this->vector;
+			this->vector = tempArray;
+
+
+		}
+		catch (std::bad_alloc)
+		{
+			throw "ERROR: Unable to allocate a new buffer for Vector";
+		}
+
+
+
+	}
+
+}
+
+
+/***************************************************
+ * Deque :: pop_front
+ * Removes an item from the front of the deque
+ **************************************************/
+template <class T>
+ void Deque <T> :: pop_front() throw (const char *)
+{
+	if (empty())
+		throw "ERROR: unable to pop from the front of empty deque";
+	else
+	{
+	myFront=(myFront + 1) % Capacity;
+	//myFront++;
+	Size--; 
+	//vector[myFront];
+	
+	//if(myFront==Capacity)
+	//{
+	//myFront=0; //problem here. 
+	//}
+	//else
+	//myFront++; 
+	//Size--; 
+	}
+}
+
+ /***************************************************
+ * Deque :: pop_back
+ * Removes an item from the back of the deque
+ **************************************************/
+ template <class T>
+ void Deque <T> ::pop_back() throw (const char *)
+ {
+	 if (empty())
+		 throw "ERROR: unable to pop from the back of empty deque";
+	 else
+	 {
+		 //myFront=(myFront + 1) % Capacity;
+		 //myBack--;
+		 myBack = (myBack + 1) % Capacity;
+		 Size--;
+		 //vector[myFront];
+
+		 //if(myFront==Capacity)
+		 //{
+		 //myFront=0; //problem here. 
+		 //}
+		 //else
+		 //myFront++; 
+		 //Size--; 
+	 }
+ }
+
+/***************************************************
+ * Deque :: front
+ * Returns the item currently at the end of the stack
+ **************************************************/
+template <class T>
+T Deque <T> :: front() throw (const char *)
+{
+	if (empty())
+		throw "ERROR: unable to access data from an empty deque";
+	return vector[myFront];   
+}
+
+/***************************************************
+ * Deque :: back
+ * Returns the item currently at the end of the stack
+ **************************************************/
+template <class T>
+T Deque <T> :: back() throw (const char *)
+{
+	if (empty())
+		throw "ERROR: unable to access data from an empty deque";
+		//myBack = (myBack-1)%Capacity; 
+	/*int newBack = myBack - 1;
+	if (newBack < 0)
+	{
+		newBack = Size - 1;
+	}*/
+	return vector[Size - 1];   
+}
+
+
+ 
+
+#endif
+nowServing.h0000600003530400007650000000100212715554352013202 0ustar  cs235s3g5student/***********************************************************************
+ * Header:
+ *    NOW SERVING
+ * Summary:
+ *    This will contain just the prototype for nowServing(). You may
+ *    want to put other class definitions here as well.
+ * Author
+ *    <your names here>
+ ************************************************************************/
+
+#ifndef NOW_SERVING_H
+#define NOW_SERVING_H
+
+#include "deque.h"     // for DEQUE
+
+// the interactive nowServing program
+void nowServing();
+
+#endif // NOW_SERVING_H
+
+request.h0000600003530400007650000000331712715554352012544 0ustar  cs235s3g5student#ifndef  REQUEST_H
+#define REQUEST_H
+#include <cassert>
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+class Request
+{
+
+  public:
+
+   //default constructor
+	  Request() : className(""), studentName(""), minutes(0), isUrgent(false) {};
+
+   //destructor
+   ~Request(){};
+   // { if (Size) delete [] vector; }
+
+   //non-default constructor Needed for test 1
+   Request(string className, string studentName, int minutes, bool urgent)
+   {
+	   this->className = className;
+	   this->studentName = studentName;
+	   this->minutes = minutes;
+	   this->isUrgent = urgent;
+   }
+
+   //copy constructor
+   Request(const Request& rhs)
+   {
+	   this->className = rhs.className;
+	   this->studentName = rhs.studentName;
+	   this->minutes = rhs.minutes;
+	   this->isUrgent = rhs.isUrgent;
+   }
+
+
+   // assignment operator
+   /*Request & operator = (const Request & rhs)
+   {
+			Request temp = rhs;
+			className = temp.className;
+			studentName = temp.studentName;
+			minutes = temp.minutes;
+			return *this;
+   }*/
+
+   string getClassName()
+   {
+	   return className;
+   }
+
+   string getStudentName()
+   {
+	   return studentName;
+   }
+
+   int getMinutes()
+   {
+	   return minutes;
+   }
+
+   bool getIsUrgent()
+   {
+	   return isUrgent;
+   }
+
+   void setClassName(string newName)
+   {
+	   className = newName;
+   }
+
+   void setStudentName(string newName)
+   {
+	   studentName = newName;
+   }
+
+   void setMinutes(int newMinutes)
+   {
+	   minutes = newMinutes;
+   }
+
+   void setIsUrgent(bool newIsUrgent)
+   {
+	   isUrgent = newIsUrgent;
+   }
+   
+  private:
+
+   string className;
+   string studentName;
+   int minutes;
+   bool isUrgent;
+
+
+};
+
+#endif
+nowServing.cpp0000600003530400007650000001214012715554351013541 0ustar  cs235s3g5student/***********************************************************************
+ * Implementation:
+ *    NOW SERVING
+ * Summary:
+ *    This will contain the implementation for nowServing() as well as any
+ *    other function or class implementations you may need
+ * Author
+ *    <your names here>
+ **********************************************************************/
+
+#include <iostream>     // for ISTREAM, OSTREAM, CIN, and COUT
+#include <string>       // for STRING
+#include <cassert>      // for ASSERT
+#include "nowServing.h" // for nowServing() prototype
+#include "deque.h"      // for DEQUE
+#include "request.h"    // for REQUEST
+using namespace std;
+
+bool hasCurrentStudent(string className, string studentName, int minutes)
+{
+	return (className != "" || studentName != "" || minutes != -1);
+}
+
+void display(bool urgent, string className, string studentName, int minutes)
+{
+	if (hasCurrentStudent(className, studentName, minutes))
+	{
+		urgent ? cout << "\tEmergency for " : cout << "\tCurrently serving ";
+		cout << studentName << " for class " << className
+			<< ". Time left: " << minutes << endl;
+	}
+	else
+		return;
+}
+
+void advanceToNextMinute(int & totalMinutes, int & currentMinutes, bool & isUrgent, Deque <Request> & requests,
+	string & currentClass, string & currentStudent)
+{
+	// get ready for next round
+	totalMinutes++;
+	currentMinutes--;
+
+	// decrement minutes
+	if (currentMinutes == 0)
+	{
+		// reset urgent if needed
+		if (isUrgent)
+			isUrgent = false;
+
+		// if deque is empty, reset current student
+		if (requests.empty())
+		{
+			currentClass = "";
+			currentStudent = "";
+			currentMinutes = -1;
+		}
+
+		// set current info to the Request in front of deque
+		else
+		{
+			Request tempRequest = requests.front();
+			currentClass = tempRequest.getClassName();
+			currentStudent = tempRequest.getStudentName();
+			currentMinutes = tempRequest.getMinutes();
+			// update isUrgent if next student is urgent
+			if (tempRequest.getIsUrgent())
+				isUrgent = true;
+			// pop front
+			requests.pop_front();
+		}
+	}
+}
+
+/************************************************
+ * NOW SERVING
+ * The interactive function allowing the user to
+ * handle help requests in the Linux lab
+ ***********************************************/
+void nowServing()
+{
+   // instructions
+   cout << "Every prompt is one minute.  The following input is accepted:\n";
+   cout << "\t<class> <name> <#minutes>    : a normal help request\n";
+   cout << "\t!! <class> <name> <#minutes> : an emergency help request\n";
+   cout << "\tnone                         : no new request this minute\n";
+   cout << "\tfinished                     : end simulation\n";
+
+   // your code here
+   string text;
+
+   // variables to store class, name, and minutes input
+   // these values will be used to create a new Request object
+   // which will be added to the Deque of Requests
+   string className;
+   string studentName;
+   int minutes;
+   bool isUrgent = false;
+
+   // variables to store info of student currently helped
+   // per instructions, current student shouldn't be on deque
+   string currentClass = "";
+   string currentStudent = "";
+   int currentMinutes = -1;
+
+   // totalMinutes is the number by the prompt that represents
+   // how many minutes have passed since program initiation
+   int totalMinutes = 0;
+   Deque <Request> requests;
+  
+   do
+	{
+	
+	
+		//prompt user for input
+		 cout << "<" << totalMinutes <<"> "; 
+		 cin >> text; 
+		 
+		 // push urgent student to top of deque
+		 if (text == "!!")
+		 {
+			 cin >> className >> studentName >> minutes;
+			 // push request to front with isUrgent set to true
+			 Request tempRequest(className, studentName, minutes, true);
+				 requests.push_front(tempRequest);
+				 display(isUrgent, currentClass, currentStudent, currentMinutes);
+			 advanceToNextMinute(totalMinutes, currentMinutes, isUrgent, requests,
+				 currentClass, currentStudent);
+		 }
+
+		 // end the program
+		 else if (text == "finished")
+		 {
+			 break;
+		 }
+
+		 else if (text == "none")
+		 {
+			 // if there is a current student, display message,
+			 // increment totalMinutes and decrement currentMinutes
+			 if (hasCurrentStudent(currentClass, currentStudent, currentMinutes))
+			 {
+				 display(isUrgent, currentClass, currentStudent, currentMinutes);
+				 advanceToNextMinute(totalMinutes, currentMinutes, isUrgent, requests,
+					 currentClass, currentStudent);
+			 }
+
+			 // if no current student, just increment totalMinutes
+			 else
+			 {
+				 totalMinutes++;
+			 }
+		 }
+
+		 // if not urgent, finished, or none
+		 else
+		 {
+			 // if decke is empty and no current student, make this student current
+			 if (requests.empty() && !hasCurrentStudent(currentClass, currentStudent, currentMinutes))
+			 {
+				 currentClass = text;
+				 cin >> currentStudent >> currentMinutes;
+			 }
+			 else 
+			 {
+				 className = text;
+				 cin >> studentName >> minutes;
+				 Request tempRequest(className, studentName, minutes, false);
+				 requests.push_back(tempRequest);
+			 }
+			 display(isUrgent, currentClass, currentStudent, currentMinutes);
+			 advanceToNextMinute(totalMinutes, currentMinutes, isUrgent, requests, currentClass, currentStudent);
+		 }
+
+	} while (text != "finished");
+
+   cout << "End of simulation\n";
+}
+
+
+week04.cpp0000600003530400007650000002211212715554351012477 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 04, DEQUE
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise the Deque class.  When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>     // for CIN and COUT
+#include <string>       // for the String class
+#include <cassert>      // for ASSERT
+#include "deque.h"      // your Deque class should be in deque.h
+#include "nowServing.h" // your nowServing() function
+using namespace std;
+
+
+// prototypes for our four test functions
+void testSimple();
+void testPushPopFront();
+void testWrapping();
+void testErrors();
+
+// To get your program to compile, you might need to comment out a few
+// of these. The idea is to help you avoid too many compile errors at once.
+// I suggest first commenting out all of these tests, then try to use only
+// TEST1.  Then, when TEST1 works, try TEST2 and so on.
+#define TEST1   // for testSimple()
+#define TEST2   // for testPushPopFront()
+#define TEST3   // for testWrapping()
+#define TEST4   // for testErrors()
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu
+   cout << "Select the test you want to run:\n";
+   cout << "\t1. Just create and destroy a Deque\n";
+   cout << "\t2. The above plus push, pop, top\n";
+   cout << "\t3. The above plus test implementation of wrapping\n";
+   cout << "\t4. The above plus exercise the error Deque\n";
+   cout << "\ta. Now Serving\n";
+
+   // select
+   char choice;
+   cout << "> ";
+   cin  >> choice;
+   switch (choice)
+   {
+      case 'a':
+         nowServing();
+         break;
+      case '1':
+         testSimple();
+         cout << "Test 1 complete\n";
+         break;
+      case '2':
+         testPushPopFront();
+         cout << "Test 2 complete\n";
+         break;
+      case '3':
+         testWrapping();
+         cout << "Test 3 complete\n";
+         break;
+      case '4':
+         testErrors();
+         cout << "Test 4 complete\n";
+         break;
+      default:
+         cout << "Unrecognized command, exiting...\n";
+   }
+
+   return 0;
+}
+
+/*******************************************
+ * TEST SIMPLE
+ * Very simple test for a Deque: create and destroy
+ ******************************************/
+void testSimple()
+{
+#ifdef TEST1
+   try
+   {
+      // Test 1.a: bool Deque with default constructor
+      cout << "Create a bool Deque using default constructor\n";
+      Deque <bool> d1;
+      cout << "\tSize:     " << d1.size()                   << endl;
+      cout << "\tCapacity: " << d1.capacity()               << endl;
+      cout << "\tEmpty?    " << (d1.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.b: double Deque with non-default constructor
+      cout << "Create a double Deque using the non-default constructor\n";
+      Deque <double> d2(10 /*capacity*/);
+      cout << "\tSize:     " << d2.size()                   << endl;
+      cout << "\tCapacity: " << d2.capacity()               << endl;
+      cout << "\tEmpty?    " << (d2.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.c: copy the Deque using the copy constructor
+      {
+         cout << "Create a double Deque using the copy constructor\n";
+         Deque <double> d3(d2);
+         cout << "\tSize:     " << d3.size()                   << endl;
+         cout << "\tCapacity: " << d3.capacity()               << endl;
+         cout << "\tEmpty?    " << (d3.empty() ? "Yes" : "No") << endl;
+      }
+
+      // Test 1.d: copy the Deque using the assignment operator
+      cout << "Copy a double Deque using the assignment operator\n";
+      Deque <double> d4(2);
+      d4 = d2;
+      cout << "\tSize:     " << d4.size()                   << endl;
+      cout << "\tCapacity: " << d4.capacity()               << endl;
+      cout << "\tEmpty?    " << (d4.empty() ? "Yes" : "No") << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+   
+#endif //TEST1
+}
+
+#ifdef TEST2
+/******************************************
+ * DISPLAY
+ * Display the contents of the deque
+ ******************************************/
+template <class T>
+ostream & operator << (ostream & out, Deque <T> d)
+{
+
+   out << "{ ";
+   while (!d.empty())
+   {
+      out << d.front() << ' ';
+      d.pop_front();
+   }
+   out << '}';
+
+   return out;
+}
+#endif // TEST2
+
+
+/*******************************************
+ * TEST PUSH POP FRONT
+ * Add a whole bunch of items to the Deque.  This will
+ * test the Deque growing algorithm
+ *****************************************/
+void testPushPopFront()
+{
+#ifdef TEST2
+   try
+   {
+      // create
+      Deque <int> d1;
+
+      // fill
+      cout << "Enter integer values, type 0 when done\n";
+      int value;
+      do
+      {
+         cout << "\t" << d1 << " > ";
+         cin  >> value;
+         if (value)
+            d1.push_back(value);
+      }
+      while (value);
+
+      // display how big it is
+      cout << "\tSize:     " << d1.size()                   << endl;
+      cout << "\tEmpty?    " << (d1.empty() ? "Yes" : "No") << endl;
+      cout << "\tCapacity: " << d1.capacity()               << endl;
+
+      // make a copy of it using the assignment operator and copy constructor
+      Deque <int> d2(2);
+      d2 = d1;
+      Deque <int> d3(d1);
+
+      // destroy the old copy
+      d1.clear();
+
+      // display the two copies
+      cout << "\td1 = " << d1 << endl;
+      cout << "\td2 = " << d2 << endl;
+      cout << "\td3 = " << d3 << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }   
+#endif // TEST2   
+}
+
+/*******************************************
+ * TEST WRAPPING
+ * We will test pop_front(), pop_back(),
+ * push_front(), and push_back() to make
+ * sure the Deque looks the way we expect
+ * it to look.
+ ******************************************/
+void testWrapping()
+{
+#ifdef TEST3
+   // create
+   Deque <string> d(4);
+
+   // instructions
+   cout << "instructions:\n"
+        << "\t+f dog   pushes dog onto the front\n"
+        << "\t+b cat   pushes cat onto the back\n"
+        << "\t-f       pops off the front\n"
+        << "\t-b       pops off the back\n"
+        << "\t*        clear the deque\n"
+        << "\t?        shows the statistics of the deque\n"
+        << "\t!        quit\n";
+
+   string command;
+   string text;
+   do
+   {
+      cout << d << " > ";
+      cin  >> command;
+
+      try
+      {
+         if (command == "+f")
+         {
+            cin >> text;
+            d.push_front(text);
+         }
+         else if (command == "+b")
+         {
+            cin >> text;
+            d.push_back(text);
+         }
+         else if (command == "-f")
+         {
+            cout << "\tpop: " << d.front() << endl;
+            d.pop_front();
+         }
+         else if (command == "-b")
+         {
+            cout << "\tpop: " << d.back() << endl;
+            d.pop_back();
+         }
+         else if (command == "?")
+         {
+            cout << "\tSize:     " << d.size()     << endl;
+            cout << "\tCapacity: " << d.capacity() << endl;
+         }
+         else if (command == "*")
+         {
+            d.clear();
+         }
+         else if (command != "!")
+         {
+            cout << "Unknown command\n";
+            cin.ignore(256, '\n');
+         }      
+      }
+      catch (const char * e)
+      {
+         cout << '\t' << e << endl;
+      }
+   }
+   while (command != "!");
+#endif // TEST3
+}
+
+/*******************************************
+ * TEST ERRORS
+ * Numerous error conditions will be tested
+ * here, including bogus popping and the such
+ *******************************************/
+void testErrors()
+{
+#ifdef TEST4
+   // create
+   Deque <char> d;
+
+   // test using front() with an empty deque
+   try
+   {
+      d.front();
+      cout << "BUG! We should not be able to front() with an empty deque!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tDeque::front() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }
+
+   // test using back() with an empty deque
+   try
+   {
+      d.back();
+      cout << "BUG! We should not be able to back() with an empty deque!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tDeque::back() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }
+
+   // test using pop_front() with an empty deque
+   try
+   {
+      d.pop_front();
+      cout << "BUG! We should not be able to pop_front() "
+           << "with an empty deque!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tDeque::pop_front() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }      
+
+   // test using pop_back() with an empty deque
+   try
+   {
+      d.pop_back();
+      cout << "BUG! We should not be able to pop_back() "
+           << "with an empty deque!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tDeque::pop_back() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }      
+
+#endif // TEST4
+}
+makefile0000600003530400007650000000165312715766550012411 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 04, DEQUE
+#     Brother JonesL, CS235
+# Author:
+#     Tiffany Gohnert John Vehikite
+# Summary:
+#     Deque program
+# Time:
+#     8+
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: deque.h week04.o nowServing.o request.h
+	g++ -o a.out week04.o nowServing.o
+	tar -cf week04.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      week04.o       : the driver program
+#      nowServing.o   : the logic for the now serving program
+##############################################################
+week04.o: deque.h week04.cpp
+	g++ -c week04.cpp
+
+nowServing.o: nowServing.h nowServing.cpp deque.h request.h
+	g++ -c nowServing.cpp
