@@ -1,0 +1,1380 @@
+card.h0000600003530400007650000000424312720754762011767 0ustar  cs235s3g5student/***********************************************************************
+* Header File
+*    This is the header file for a "Go Fish" card
+* Summary: 
+*     Playing cards for the children's version of Go Fish
+* Author:
+*    Br. Helfrich
+************************************************************************/
+
+#ifndef CARD_H
+#define CARD_H
+
+#include <iostream>       // for IFSTREAM and OFSTREAM
+#include <cassert>        // for ASSERT in the constructors
+
+#define INDEX_FIRST 1
+#define INDEX_LAST  6
+#define INVALID     0
+
+/*****************************************
+ * CARD
+ * Card class for the children's version
+ * of Go Fish. The text of the cards is
+ * described at the top of card.cpp
+ *****************************************/
+class Card
+{
+  public:
+   // various constructors
+   Card()                  : value(INVALID)   { assert(validate()); }
+   Card(const Card & rhs)  : value(rhs.value) { assert(validate()); }
+   Card(const char * rhs)  : value(INVALID)   { *this = rhs;        }
+
+   bool isInvalid() const { return value == INVALID; }
+
+   // insertion and extraction operators
+   friend std::ostream & operator << (std::ostream & out, const Card & card);
+   friend std::istream & operator >> (std::istream & in,        Card & card);
+   
+   // assignment
+   Card & operator = (const Card & rhs);     // copy one card to another
+   Card & operator = (const char * rhs);     // assign the string to the card
+   
+   // Absolute and relative comparision... comparing cards
+   bool operator == (const Card & rhs) const { return value == rhs.value; }
+   bool operator != (const Card & rhs) const { return value != rhs.value; }
+   bool operator >= (const Card & rhs) const { return value >= rhs.value; }
+   bool operator >  (const Card & rhs) const { return value >  rhs.value; }
+   bool operator <= (const Card & rhs) const { return value <= rhs.value; }
+   bool operator <  (const Card & rhs) const { return value <  rhs.value; }
+   
+   
+  private:
+   // holds the value.  Though there are 256 possible, only 52 are used
+   unsigned char value;                // internal representation
+
+   // private functions
+   bool validate() const;              // are we in a valid state?
+};
+
+#endif // CARD_H
+goFish.h0000600003530400007650000000111412721141013012243 0ustar  cs235s3g5student/***********************************************************************
+* Header:
+*    Go Fish
+* Summary:
+*    This will contain just the prototype for the goFish() function
+* Author
+*    <your names here>
+************************************************************************/
+#include <stdio.h>
+
+#ifndef GO_FISH_H
+#define GO_FISH_H
+
+
+/**************************************************
+ * GO FISH
+ * Play the game of "Go Fish"
+ *************************************************/
+class Fish {
+
+//initialize the deck
+
+//shuffle
+
+//deal
+
+}; 
+ 
+ 
+ void goFish();
+
+
+
+#endif // GO_FISH_H
+
+set.h0000600003530400007650000003006312721161164011635 0ustar  cs235s3g5student﻿#ifndef  SET_H
+#define SET_H
+#include <cassert>
+#include <iostream>
+#include <fstream>
+#include <algorithm> // sort; binary_search
+#include <stdio.h>
+using namespace std;
+
+
+// forward declaration for SetIterator
+template <class T>
+class SetIterator;
+
+// forward declaration for SetIterator
+template <class T>
+class SetConstIterator;
+
+//set class
+template <class T>
+class Set
+{
+
+  public:
+
+   //default constructor
+  Set():  Size(0),Capacity(0), vector(0x00000000){}
+
+   //destructor
+   ~Set(){};
+   // { if (Size) delete [] vector; }
+
+   //non-default constructor 
+   Set(int capacity) throw (const char *);
+
+   //copy constructor
+   Set(const Set& rhs)throw (const char *);
+
+
+   // assignment operator
+   Set & operator = (const Set & rhs) throw (const char *)
+   {
+           try
+           {  
+			   //Set temp = rhs;
+			   Capacity = rhs.Capacity;
+			   vector = rhs.vector;
+			   Size = rhs.Size;
+			   return *this;
+           }
+           catch (std::bad_alloc)
+           {
+              throw "ERROR: Unable to allocate a new buffer for Set";
+           }
+
+   }
+
+   //empty()
+   bool empty() const { return Size == 0; }
+
+   //size()
+   int size()const { return Size; }
+
+   //capacity()
+   int capacity()const { return Capacity; }
+
+   //clear()
+   void clear() { Size = 0; }
+
+   int clear() const { Size =0; return Size; } 
+
+   // return an iterator to the beginning of the list
+   SetIterator <T> begin() { return SetIterator<T>(vector); }
+   
+   SetConstIterator <T> cbegin() const { return SetConstIterator <T>(vector); }
+
+   // return an iterator to the end of the list
+   SetIterator <T> end() { return SetIterator<T>(vector + Size); }
+
+   SetConstIterator <T> cend() const { return SetConstIterator <T>(vector + Size); }
+
+   SetIterator <T> find(const T & t)
+   {
+	   /*
+	   find(): Takes a template item as a 
+	   parameter and returns an iterator 
+	   pointing to the corresponding item in 
+	   the set. If the item does not exist, 
+	   it returns Set::end(). Note that the 
+	   pseudocode in the reading returns an 
+	   index so some modification to that 
+	   pseudocode will be required.
+	   */
+
+	   /*
+	   find (element)
+		iBegin = 0
+		iEnd = numElements – 1
+		WHILE iBegin ≤ iEnd
+			iMiddle = (iBegin + iEnd) / 2
+			IF element = array[iMiddle]
+				RETURN iMiddle
+			IF element < array[iMiddle]
+				iEnd = iMiddle – 1
+			ELSE
+				iBegin = iMiddle + 1
+		RETURN numElements
+	   */
+	  // Unsorted
+	   SetIterator <T> it;
+	   for (it = begin(); it != end(); it++)
+	   {
+		   if (t == *it)
+
+			   return it;
+			 		   
+	   }
+	 
+	   return it;
+	   
+   }
+
+   void insert(const T & t)
+   {
+	   /*
+	   insert(): Add an item to the set. This method
+	   has a void return type. One parameter will be
+	   expected, the item to be added to the set. Note
+	   that the order in the set must be preserved. This
+	   means that the correct location in the set must
+	   be found before insertion. Also, if the item
+	   already exists in the set, then nothing is done.
+	   Of course, if the capacity is insufficient to hold
+	   the newly inserted item, then it will need to double
+	   the buffer size just like Container.
+	   */
+
+	   /*
+	   insert(element)
+		iInsert = find(element)
+		if array[iInsert] ≠ element
+			FOR i = numElements … iInsert by -1’s
+				array[i + 1] = array[i]
+			array[iInsert] = element
+			num_elements++
+	   */
+	   
+	   if (this->Capacity == 0)
+	   {
+		   delete[] vector;
+		   Capacity = 1;
+		   this->vector = new T[Capacity];
+
+		   //this->vector=vector; 
+		   this->Capacity = 1;
+		   this->Size = 0;
+	   }
+
+	   // Sorted
+	   /*SetIterator <T> it;
+	   SetIterator <T> iInsert = find(t);
+	   if (*iInsert != t)
+	   {
+		   for (it = this->end(); iInsert !=begin(); iInsert--)
+		   {
+			   
+		   }
+	   }*/
+
+	 
+
+	   if (Capacity == Size)
+	   {
+		   try
+		   {
+			   Capacity *= 2;
+			   T * tempArray = new T[Capacity];
+			   for (int i = 0; i < this->Size; i++)
+			   {
+				   tempArray[i] = this->vector[i];
+			   }
+			   delete[] this->vector;
+			   this->vector = tempArray;
+
+
+		   }
+		   catch (std::bad_alloc)
+		   {
+			   throw "ERROR: Unable to allocate a new buffer for Set";
+		   }
+	   }
+	     // Unsorted
+	 
+
+	 SetIterator <T> it;
+	   SetIterator <T> itEnd;
+	   
+	  
+	   for (it =begin(); it != end(); it++)
+	   {
+		   if (t == *it)
+			   return;
+			   
+	   }
+	   
+	   Size++;	   
+	   vector[Size - 1] = t;
+	  sort(vector, vector + Size);
+	
+	   
+
+   }
+
+   void erase(SetIterator <T> it)
+   {
+	   /*
+	   erase(): Remove an element from the set. This method 
+	   takes an iterator as a parameter, referring to the 
+	   element to be removed from the set. Note that the 
+	   pseudocode in the reading takes an index so some 
+	   modification to that pseudocode will be required. 
+	   There is no return value.
+	   */
+
+	   /*
+	   delete(element)
+			iDelete= find(element)
+			if array[iDelete] = element
+				FOR i = iDelete … numElements
+					array[i] = array[I + 1]
+			numElements--
+	   */
+	   
+
+	   // Unsorted
+	   for (int i = 0; i < Size; i++)
+	   {
+		   if (vector[i] == (*it))
+		   {
+			   vector[i] = vector[--Size];
+			   break;
+		   }
+	   }
+
+	   // Sort vector
+	   sort(vector, vector + Size);
+   }
+
+   Set operator && (Set s)
+   {
+	   /*
+	   operator&&(): The intersection operator. The parameter 
+	   is a Set object and the return value is a new Set object 
+	   containing all the elements that are in both this and 
+	   in the parameter.
+	   */
+
+	   /*
+	   union(set1, set2)
+		iSet1 = 0
+		iSet2 = 0
+		WHILE iSet1 < set1.numElements OR iSet2 < set2.numElements
+			IF iSet1 == set1.numElements
+				setReturn.addToEnd(set2.array[iSet2++])
+			ELSE IF iSet2 == set2.num_elements
+				setReturn.addToEnd(set1.array[iSet1++])
+			ELSE IF set1.array[iSet1] == set2.array[iSet2]
+				setReturn.addToEnd(set1.array[iSet1])
+				iSet1++
+				iSet2++
+			ELSE IF set1.array[iSet1] < set1.array[iSet2]
+				setReturn.addToEnd(set1.array[iSet1++])
+			ELSE
+				setReturn.addToEnd(set2.array[iSet2++])
+		RETURN setReturn
+	   */
+
+	   // unsorted
+	   /*Set setReturn = *this;
+	   SetIterator <T> it;
+	   for (it = s.begin(); it != s.end(); it++)
+	   {
+		   setReturn.insert(*it);
+	   }
+	   return setReturn;*/
+	   Set setReturn;
+	   SetIterator <T> it;
+	   for (it = this->begin(); it != this->end(); it++)
+	   {
+		   if (s.find(*it) != s.end())
+			   setReturn.insert(*it);
+	   }
+	   return setReturn;
+
+
+   }
+
+   Set operator || (const Set s)
+   {
+	   /*
+	   operator||(): The union operator. The parameter is a 
+	   Set object and the return value is a new Set object 
+	   containing all the elements that are in either this or 
+	   in the parameter.
+	   */
+
+	   /*
+	   intersection(set1, set2)
+		iSet1 = 0
+		iSet2 = 0
+		WHILE iSet1 < set1.numElements OR iSet2 < set2.numElements
+			IF iSet1 == set1.numElements
+				RETURN setReturn
+			ELSE IF iSet2 == set2.num_elements
+				RETURN setReturn
+			ELSE IF set1.array[iSet1] == set2.array[iSet2]
+				setReturn.addToEnd(set1.array[iSet1])
+				iSet1++
+				iSet2++
+			ELSE IF set1.array[iSet1] < set1.array[iSet2]
+				iSet1++
+			ELSE
+				iSet2++
+		RETURN setReturn
+
+	   */
+
+	   //unsorted
+	   Set setReturn = s;
+	   SetIterator <T> it;
+	   for (it = begin(); it != end(); it++)
+	   {
+	    
+		   setReturn.insert(*it);
+	   }
+	  
+	   return setReturn;
+   }
+   
+    Set operator - (Set s)
+   {
+	   Set setReturn;
+	   SetIterator <T> it;
+	   for (it = this->begin(); it != this->end(); it++)
+	   {
+		   if (s.find(*it) != s.end())
+			     continue;
+		   if (setReturn.size() > 0)
+		   {
+			   if (setReturn.find(*it) != setReturn.end())
+				   continue;
+		   }
+		   setReturn.insert(*it);
+	   }
+	   return setReturn;
+   }
+
+
+   
+  private:
+
+   int Size;
+   T * vector;
+   int Capacity;
+};
+
+/**************************************************
+* SET ITERATOR
+* An iterator through Set
+*************************************************/
+template <class T>
+class SetIterator
+{
+public:
+	// default constructor
+	SetIterator() : p(NULL) {}
+
+	// initialize to direct p to some item
+	SetIterator(T * p) : p(p) {}
+
+	// copy constructor
+	SetIterator(const SetIterator & rhs) { *this = rhs; }
+
+	// assignment operator
+	SetIterator & operator = (const SetIterator & rhs)
+	{
+		this->p = rhs.p;
+		return *this;
+	}
+
+	// not equals operator
+	bool operator == (const SetIterator & rhs) const
+	{
+		return rhs.p == this->p;
+	}
+
+	// not equals operator
+	bool operator != (const SetIterator & rhs) const
+	{
+		return rhs.p != this->p;
+	}
+
+	// dereference operator
+	T & operator * ()
+	{
+		return *p;
+	}
+
+	// prefix increment
+	SetIterator <T> & operator ++ ()
+	{
+		p++;
+		return *this;
+	}
+
+	// postfix increment
+	SetIterator <T> operator++(int postfix)
+	{
+		SetIterator tmp(*this);
+		p++;
+		return tmp;
+	}
+
+	// prefix decrement
+	SetIterator <T> & operator -- ()
+	{
+		p--;
+		return *this;
+	}
+
+	// postfix increment
+	SetIterator <T> operator--(int postfix)
+	{
+		SetIterator tmp(*this);
+		p--;
+		return tmp;
+	}
+
+private:
+	T * p;
+};
+
+/**************************************************
+* SET CONST ITERATOR
+* A const iterator through Set
+*************************************************/
+template <class T>
+class SetConstIterator
+{
+public:
+	// default constructor
+	SetConstIterator() : p(NULL) {}
+
+	// initialize to direct p to some item
+	SetConstIterator(T * p) : p(p) {}
+
+	// copy constructor
+	SetConstIterator(const SetConstIterator & rhs) { *this = rhs; }
+
+	// assignment operator
+	SetConstIterator & operator = (const SetConstIterator & rhs)
+	{
+		this->p = rhs.p;
+		return *this;
+	}
+
+	// not equals operator
+	bool operator == (const SetConstIterator & rhs) const
+	{
+		return rhs.p == this->p;
+	}
+
+	// not equals operator
+	bool operator != (const SetConstIterator & rhs) const
+	{
+		return rhs.p != this->p;
+	}
+
+	// dereference operator
+	T & operator * ()
+	{
+		return *p;
+	}
+
+	// prefix increment
+	SetConstIterator <T> & operator ++ ()
+	{
+		p++;
+		return *this;
+	}
+
+	// postfix increment
+	SetConstIterator <T> operator++(int postfix)
+	{
+		SetConstIterator tmp(*this);
+		p++;
+		return tmp;
+	}
+
+	// prefix decrement
+	SetConstIterator <T> & operator -- ()
+	{
+		p--;
+		return *this;
+	}
+
+	// postfix increment
+	SetConstIterator <T> operator--(int postfix)
+	{
+		SetConstIterator tmp(*this);
+		p--;
+		return tmp;
+	}
+
+private:
+	T * p;
+};
+
+/**********************************************
+ * Set : NON-DEFAULT CONSTRUCTOR
+ * Preallocate the Set to "capacity"
+ **********************************************/
+template <class T>
+Set <T> :: Set(int capacity) throw (const char *)
+{
+   assert(capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (capacity == 0)
+   {
+      this->Capacity = this->Size = 0;
+      this->vector = 0x00000000;
+	  return;
+   }
+
+   // attempt to allocate
+            try
+            {
+               vector = new T[capacity];
+
+            }
+            catch (std::bad_alloc)
+            {
+               //problem for test 1
+               throw "ERROR: Unable to allocate buffer";
+
+
+            }
+
+
+            // copy over the stuff
+            this->Capacity = capacity;
+            this->Size = 0;
+}
+
+/*******************************************
+ * Set:: COPY CONSTRUCTOR
+ *******************************************/
+template <class T>
+Set <T> :: Set(const Set <T> & rhs) throw (const char *)
+{
+
+   assert(rhs.Capacity >= 0);
+      
+   // do nothing if there is nothing to do
+   if (rhs.Capacity == 0)
+   {
+      Capacity = Size=0;
+      vector = 0x00000000;
+      return;
+   }
+
+   // attempt to allocate
+   try
+   {
+      vector = new T[rhs.Capacity];
+   }
+   catch (std::bad_alloc)
+   {
+      throw "ERROR: Unable to allocate buffer";
+   }
+   
+   // copy over the stuff
+   assert(rhs.Size >= 0 && rhs.Size <= rhs.Capacity);
+   Capacity = rhs.Capacity;
+   Size = rhs.Size;
+   for (int i = 0; i < Size; i++)
+      vector[i] = rhs.vector[i];
+   
+   
+   
+}
+
+
+#endif
+card.cpp0000600003530400007650000000557312720754762012331 0ustar  cs235s3g5student/***********************************************************************
+* Source File:
+*    Implementation of the Card class.
+* Summary: 
+*    This file will implement all the methods described in card.h
+* Author:
+*    Br. Helfrich
+************************************************************************/
+
+#include <iostream>       // for IFSTREAM and OFSTREAM
+#include <cassert>        // because I am paranoid
+#include <string.h>       // for STRCMP
+#include "card.h"         // for the class definition
+using namespace std;
+
+/**************************************
+ * CARD NAMES
+ * The name on each card
+ **************************************/
+const char * CARD_NAMES[] =
+{
+   "-INVALID-", // 0
+   "AngleFish", // 1
+   "Cod",       // 2
+   "Crab",      // 3
+   "Dolphin",   // 4
+   "SeaHorse",  // 5
+   "Shark",     // 6
+};
+
+/*****************************
+ * Insertion  cout << x;
+ * RETURN:    ostream by reference   (so we can say (cout << x) << y;)
+ * PARAMETER: ostream by reference   (we do not want a copy of cout)
+ *            constant by reference  (we do not want to make a copy or change)
+ *****************************/
+ostream & operator << (ostream & out, const Card & card)
+{
+   // we better be one of the valid cards...
+   assert(card.validate());
+
+   // display the friendly name of the card
+   out << CARD_NAMES[card.value];
+
+   // return the output stream
+   return out;
+}
+
+/*****************************
+ * Extraction    cin >> x;
+ * RETURN:    istream by reference  (so we can say (cin >> x) >> y;)
+ * PARAMETER: istream by reference  (we do not want a copy of cin)
+ *            by reference          (no copies but we do want to change this) 
+ *****************************/
+istream & operator >> (istream & in, Card & card)
+{
+   // input comes in the form of a string
+   string input;
+   in >> input;
+
+   // do the actual work
+   card = input.c_str();
+   assert(card.validate());
+
+   // return the input stream
+   return in;
+}
+
+/*************************************
+ * ASSIGNMENT
+ * RETURN:    *this by reference
+ * PARAMETER: a constant Card
+ * METHOD:    not const
+ *************************************/
+Card & Card :: operator = (const Card & rhs)
+{
+   assert(rhs.validate());
+   value = rhs.value;
+   return *this;
+}
+
+/*************************************
+ * ASSIGNMENT
+ * RETURN:    *this by reference
+ * PARAMETER: a constant string representing the card
+ * METHOD:    not const
+ *************************************/
+Card & Card :: operator = (const char * rhs)
+{
+   // initially we don't know the value
+   value = INVALID;
+   for (int i = INDEX_FIRST; value == INVALID && i <= INDEX_LAST; i++)
+      if (strcmp(rhs, CARD_NAMES[i]) == 0)
+         value = i;
+
+   assert(validate());
+   return *this;
+}
+
+/*****************************
+ * VALIDATE
+ *****************************/
+bool Card :: validate() const
+{
+   return (value == INVALID ||
+       (value >= INDEX_FIRST && value <= INDEX_LAST));
+}
+
+cardTest.cpp0000600003530400007650000000026612720754762013163 0ustar  cs235s3g5student#include <iostream>
+#include "card.h"
+
+using namespace std;
+
+int main()
+{
+   Card card;
+   cout << "> ";
+   cin  >> card;
+   cout << "Your card is: " << card << endl;
+   return 0;
+}
+goFish.cpp0000600003530400007650000000516512721144374012625 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Assignment 01, Go Fish
+*    Brother Helfrich, CS 235
+* Author:
+*    <your names here>
+* Summary: 
+*    This is all the functions necessary to play Go Fish!
+*
+*    Estimated:  0.0 hrs   
+*    Actual:     0.0 hrs
+*      Please describe briefly what was the most difficult part.
+************************************************************************/
+
+#include <iostream>
+#include "set.h"
+#include "card.h"
+#include "goFish.h"
+#include <string>         // because testIterate() uses a Set of string
+#include <vector>
+using namespace std;
+
+/**********************************************************************
+ * GO FISH
+ * The function which starts it all
+ ***********************************************************************/
+/******************************************
+ * DISPLAY
+ * Display the contents of the set
+ *****************************************/
+template <class T>
+ostream & operator << (ostream & out, Set <T> & rhs)
+{
+   //out << "{ ";
+   SetIterator <T> it;
+   for (it = rhs.begin(); it != rhs.end(); ++it)
+   {
+	   out << *it;
+
+   }
+
+   //out << '}';
+   return out;
+}
+ 
+ 
+ void goFish()
+{
+int round=1;  
+int match=0; 
+Set <string> hand; 
+string card;
+
+//instructions
+cout << "We will play 5 rounds of Go Fish.  Guess the card in the hand" << endl; 
+
+//insert 
+vector <string> words; 
+   string str; 
+
+   ifstream fin("/home/cs235/week05/hand.txt"); // Open it up!
+   //ifstream fin("C:/Users/jdavet/Desktop/hand.txt"); // Test locally
+   while (fin >> str) 
+   {
+      words.push_back(str);
+   }
+   fin.close(); // Close that file!
+   
+   
+
+   for (int i = 0; i < words.size(); ++i)
+{
+hand.insert(words.at(i));
+}
+
+  // make a copy of the set using the copy constructor
+      Set <string> s2(hand);
+
+//5 turns
+//Prompt the user for a card
+for (int i =1; i<6; i++)
+
+{
+//count rounds
+cout << "round " << i <<": " ;
+cin >> card; 
+
+
+//Find card and empty
+ SetIterator <string> itEmpty = hand.end();
+         SetIterator <string> itFind = hand.find(card);
+         if (itFind != itEmpty)
+         {
+            cout<< "\tYou got a match!"<< endl;
+match++;
+            hand.erase(itFind);
+         }
+         else
+            cout<< "\tGo Fish!" << endl;
+
+
+
+}
+
+
+
+//return matches  
+cout << "You have " << match << " matches!" <<endl; 
+
+//return cards left by returning hand
+
+	   
+cout << "The remaining cards: "; /*<< hand << endl;*/
+SetIterator <string> it;
+for (it = hand.begin(); it != hand.end(); it++)
+{
+	if (it != hand.begin())
+		cout << ", ";
+	cout << *it;
+}
+cout << endl;
+
+//return cards left by returning hand
+//cout << "before: "  << s2 << endl; 
+
+   return ;
+}
+week05.cpp0000600003530400007650000002663112721141013012472 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 05, Set
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise the Set class.  When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>       // for CIN and COUT
+#include <string>         // because testIterate() uses a Set of string
+#include "set.h"          // your Set class needs to be in set.h
+#include "goFish.h"       // your goFish() function needs to be defined here
+using namespace std;
+
+// prototypes for our four test functions
+void testSimple();
+void testFill();
+void testFind();
+void testUnionIntersection();
+void testConstIterator();
+void testDifference();
+
+// To get your program to compile, you might need to comment out a few
+// of these. The idea is to help you avoid too many compile errors at once.
+// I suggest first commenting out all of these tests, then try to use only
+// TEST1.  Then, when TEST1 works, try TEST2 and so on.
+#define TEST1   // for testSimple()
+#define TEST2   // for testFill()
+#define TEST3   // for testFind()
+#define TEST4   // for testUnionItersection()
+//#define TEST5   // for testConstIterator()
+#define TEST6   // for testDifference()
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu
+   cout << "Select the test you want to run:\n";
+   cout << "\t1. Just create and destroy a Set.\n";
+   cout << "\t2. The above plus fill and iterate through the Set.\n";
+   cout << "\t3. The above plus find if an item is in the Set.\n";
+   cout << "\t4. The above plus union and intersection.\n";
+   cout << "\t5. Extra credit: test the const iterator.\n";
+   cout << "\t6. Extra credit: test the difference operator.\n";
+   cout << "\ta. Go Fish!\n";
+
+   // select
+   char choice;
+   cout << "> ";
+   cin  >> choice;
+   switch (choice)
+   {
+      case 'a':
+         goFish();
+         break;
+      case '1':
+         testSimple();
+         cout << "Test 1 complete\n";
+         break;
+      case '2':
+         testFill();
+         cout << "Test 2 complete\n";
+         break;
+      case '3':
+         testFind();
+         cout << "Test 3 complete\n";
+         break;
+      case '4':
+         testUnionIntersection();
+         cout << "Test 4 complete\n";
+         break;
+      case '5':
+         testConstIterator();
+         cout << "Extra credit: const iterator completed\n";
+         break;
+      case '6':
+         testDifference();
+         cout << "Extra credit: difference completed\n";
+         break;
+      default:
+         cout << "Unrecognized command, exiting...\n";
+   }
+   
+   return 0;
+}
+
+/*******************************************
+ * TEST SIMPLE
+ * Very simple test for a set: create and destroy
+ ******************************************/
+void testSimple()
+{
+#ifdef TEST1
+   try
+   {
+      // Test 1.a: bool Set with default constructor
+      cout << "Create a bool Set using default constructor\n";
+      Set <bool> s1;
+      cout << "\tSize:     " << s1.size()                   << endl;
+      cout << "\tCapacity: " << s1.capacity()               << endl;
+      cout << "\tEmpty?    " << (s1.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.b: double Set with non-default constructor
+      cout << "Create a double Set using the non-default constructor\n";
+      Set <double> s2(10 /*capacity*/);
+      cout << "\tSize:     " << s2.size()                   << endl;
+      cout << "\tCapacity: " << s2.capacity()               << endl;
+      cout << "\tEmpty?    " << (s2.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.c: copy the Set using the copy constructor
+      {
+         cout << "Create a double Set using the copy constructor\n";
+         Set <double> s3(s2);
+         cout << "\tSize:     " << s3.size()                   << endl;
+         cout << "\tCapacity: " << s3.capacity()               << endl;
+         cout << "\tEmpty?    " << (s3.empty() ? "Yes" : "No") << endl;
+      }
+
+      // Test 1.d: copy the Set using the assignment operator
+      cout << "Copy a double Set using the assignment operator\n";
+      Set <double> s4(2);
+      s4 = s2;
+      cout << "\tSize:     " << s4.size()                   << endl;
+      cout << "\tCapacity: " << s4.capacity()               << endl;
+      cout << "\tEmpty?    " << (s4.empty() ? "Yes" : "No") << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }
+#endif // TEST1
+}
+
+/******************************************
+ * DISPLAY
+ * Display the contents of the set
+ *****************************************/
+template <class T>
+ostream & operator << (ostream & out, Set <T> & rhs)
+{
+#ifdef TEST2
+   out << "{ ";
+   SetIterator <T> it;
+   for (it = rhs.begin(); it != rhs.end(); ++it)
+      out << *it << ' ';
+   out << '}';
+#endif // TEST2
+   return out;
+}
+
+/******************************************
+ * TEST FILL
+ * This will test the following:
+ *   1. Instantiating a Set object
+ *   2. Filling the contents with values
+ *   3. Iterate through the set to display the contents
+ *   4. Destroying an object when finished
+ *   5. Copy the set with the copy constructor and assignment operator
+ ******************************************/
+void testFill()
+{
+#ifdef TEST2
+   try
+   {
+      // create using the default constructor
+      Set <int> s1;
+
+      // fill
+      cout << "Enter numbers, type 0 when done\n";
+      int number;
+      do
+      {
+         cout << "\t" << s1 << " > ";
+         cin  >> number;
+         if (number)
+            s1.insert(number);
+      }
+      while (number);
+
+      // display how big it is
+      cout << "\tSize:     " << s1.size()                   << endl;
+      cout << "\tEmpty?    " << (s1.empty() ? "Yes" : "No") << endl;
+      cout << "\tCapacity: " << s1.capacity()               << endl;
+
+      // mak a copy of it using the assignment operator and copy constructor
+      Set <int> s2(2);
+      s2 = s1;
+      Set <int> s3(s1);
+
+      // destroy the old copy
+      s1.clear();
+
+      // display the two copies
+      cout << "\ts1 = " << s1 << endl;
+      cout << "\ts2 = " << s2 << endl;
+      cout << "\ts3 = " << s3 << endl;      
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }
+#endif // TEST2
+}
+
+/******************************************
+ * TEST FIND
+ * This will test the following:
+ *   1. Instantiating a Set object
+ *   2. Filling the contents with values
+ *   3. Displaying the values using an iterator
+ *   4. Prompt for the existance of an item in the set and remove it
+ *   5. Display the remaining items in the set
+ ******************************************/
+void testFind()
+{
+#ifdef TEST3
+   try
+   {
+      // create a list using the default constructor
+      Set <string> s1;
+
+      // fill the Set with text
+      cout << "Enter text, type \"quit\" when done\n";
+      string text;
+      do
+      {
+         cout << "\t" << s1 << " > ";
+         cin  >> text;
+         if (text != "quit")
+            s1.insert(text);
+      }
+      while (text != "quit");
+
+      // make a copy of the set using the copy constructor
+      Set <string> s2(s1);
+   
+      // look for an item in the set
+      cout << "Find items in the set and delete.\n";
+      cout << "Enter words to search for, type \"quit\" when done\n";
+      
+      cout << "\t" << s1 << " > ";
+      cin  >> text;
+      do
+      {
+         SetIterator <string> itEmpty = s1.end();
+         SetIterator <string> itFind = s1.find(text);
+         if (itFind != itEmpty)
+         {
+            cout << "\tFound and removed!\n";
+            s1.erase(itFind);
+         }
+         else
+            cout << "\tNot found\n";
+         cout << "\t" << s1 << " > ";
+         cin  >> text;
+      }
+      while (text != "quit");
+
+      // show the list again
+      cout << "The remaining set after the items were removed\n";
+      cout << "\t" << s1 << endl;
+
+      // show the list before the items were removed
+      cout << "The items in the set before the items were removed\n";
+      cout << "\t" << s2 << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }
+#endif // TEST3
+}
+
+/**********************************************
+ * TEST UNION INTERSECTION
+ * This will test the following:
+ *    1. Instantiate two Set objects and fill them
+ *    2. Display the results of Union
+ *    4. Display the results of Intersection
+ **********************************************/
+void testUnionIntersection()
+{
+#ifdef TEST4
+   try
+   {
+      cout.setf(ios::fixed | ios::showpoint);
+      cout.precision(1);
+
+      // fill the first set with numbers
+      Set <float> s1;
+      cout << "First set: enter numbers, type 0.0 when done\n";
+      float number;
+      do
+      {
+         cout << "\t> ";
+         cin  >> number;
+         if (number != 0.0)
+            s1.insert(number);
+      }
+      while (number != 0.0);
+
+      // fill the second set with numbers
+      Set <float> s2;
+      cout << "Second set: enter numbers, type 0.0 when done\n";
+      do
+      {
+         cout << "\t> ";
+         cin  >> number;
+         if (number != 0.0)
+            s2.insert(number);
+      }
+      while (number != 0.0);
+
+      // compute the union and intersection
+      Set <float> sIntersection(s1 && s2);
+      Set <float> sUnion(s1 || s2);
+      
+      // display the contents
+      cout << "s1 = " << s1 << endl;
+      cout << "s2 = " << s2 << endl;
+      cout << "s1 && s2 = " << sIntersection << endl;
+      cout << "s1 || s2 = " << sUnion        << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }   
+#endif // TEST4
+}
+
+/****************************************************************
+ * TEST CONST ITERATOR
+ * Extra credit: Test the constant iterator
+ ****************************************************************/
+void testConstIterator()
+{
+#ifdef TEST5
+   try
+   {
+      // create the set
+      Set <int> s1;
+      s1.insert(2);
+      s1.insert(4);
+      s1.insert(6);
+      s1.insert(8);
+
+      // display
+      cout << "Display the contents using a const iterator\n";
+      const Set <int> s2(s1);
+      for (SetConstIterator <int> it = s2.cbegin(); it != s2.cend(); ++it)
+         cout << '\t' << *it << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }
+#endif // TEST5
+}
+
+/***********************************************************
+ * TEST DIFFERENCE
+ * Extra credit: Test the difference operator
+ ***********************************************************/
+void testDifference()
+{
+#ifdef TEST6
+   try
+   {
+      // create a set of 10 characters
+      Set <char> s1;
+      cout << "Please enter 10 characters: ";
+      for (int i = 0; i < 10; i++)
+      {
+         char letter;
+         cin >> letter;
+         s1.insert(letter);
+      }
+
+      // create a second set of 10 characters
+      Set <char> s2;
+      cout << "Please enter another 10 characters: ";
+      for (int i = 0; i < 10; i++)
+      {
+         char letter;
+         cin >> letter;
+         s2.insert(letter);
+      }
+
+      // s1 - s2 and s2 - s1
+      Set <char> sDifference;
+      sDifference = s1 - s2;
+      cout << "\t" << s1 << " - " << s2 << " = " << sDifference << endl;
+      sDifference = s2 - s1;
+      cout << "\t" << s2 << " - " << s1 << " = " << sDifference << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }   
+#endif // TEST6
+}
+makefile0000600003530400007650000000203012720754761012374 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 05, SET
+#     Brother JonesL, CS235
+# Author:
+#     Tiffany Gohnert John Vehikite
+# Summary:
+#     <put a description here>
+# Time:
+#     <how long did it take to complete this program>?
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: week05.o goFish.o card.o
+	g++ -o a.out week05.o goFish.o card.o
+	tar -cf week05.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      week05.o       : the driver program
+#      goFish.o       : the logic for the goFish game
+#      card.o         : a single playing card
+##############################################################
+week05.o: set.h goFish.h week05.cpp
+	g++ -c week05.cpp
+
+goFish.o: set.h goFish.h goFish.cpp card.h
+	g++ -c goFish.cpp
+
+card.o: card.h card.cpp
+	g++ -c card.cpp 
