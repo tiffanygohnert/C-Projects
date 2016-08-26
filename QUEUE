@@ -1,0 +1,1144 @@
+dollars.h0000600003530400007650000000512612713551315012506 0ustar  cs235s3g5student/***********************************************************************
+ * Header:
+ *    DOLLARS
+ * Summary:
+ *    This file contains the notion of money
+ * Author
+ *    Br. Helfrich
+ ************************************************************************/
+
+#ifndef DOLLARS_H
+#define DOLLARS_H
+
+#include <iostream>  // for OSTREAM and ISTREAM
+
+/******************************************
+ * DOLLARS
+ * This class behaves like a number except it handles
+ * input and output for money different.
+ * The following inputs are the same for example:
+ *   -4 -4.0 (4.00) -$4.00 $-4
+ ******************************************/
+class Dollars
+{
+  public:
+   // constructors
+  Dollars()                        : cents(0)     {                        }
+  Dollars(int cents)               : cents(cents) {                        }
+  Dollars(double dollars)          : cents(0)     { *this = dollars;       }
+  Dollars(const Dollars & dollars) : cents(0)     { *this = dollars;       }
+
+   // operators
+   Dollars & operator = (double dollars)
+   {
+      cents = (int)(dollars * 100.0);
+      return *this;
+   }
+   Dollars & operator = (int dollars)
+   {
+      *this = (double)dollars;
+      return *this;
+   }
+   Dollars & operator = (const Dollars & dollars)
+   {
+      cents = dollars.cents;
+      return *this;
+   }
+   Dollars operator - (const Dollars & rhs) const
+   {
+      return Dollars(cents - rhs.cents);
+   }
+   Dollars operator * (int value) const
+   {
+      return Dollars(cents * value);
+   }
+   Dollars operator * (double value) const
+   {
+      return Dollars((int)((double)cents * value));
+   }
+   Dollars operator + (const Dollars & rhs) const
+   {
+      return Dollars(cents + rhs.cents);
+   }
+   Dollars & operator += (const Dollars & rhs)
+   {
+      return *this = *this + rhs;
+   }
+   bool operator == (const Dollars & rhs) const
+   {
+      return this->cents == rhs.cents;
+   }
+   bool operator != (const Dollars & rhs) const
+   {
+      return !(*this == rhs);
+   }
+   bool operator > (const Dollars & rhs) const
+   {
+      return this->cents > rhs.cents;
+   }
+   bool operator >= (const Dollars & rhs) const
+   {
+      return *this > rhs || *this == rhs;
+   }
+   bool operator < (const Dollars & rhs) const
+   {
+      return !(*this >= rhs);
+   }
+   bool operator <= (const Dollars & rhs) const
+   {
+      return !(*this > rhs);
+   }      
+
+   // input and output
+   friend std::ostream & operator << (std::ostream & out, const Dollars & rhs);
+   friend std::istream & operator >> (std::istream & in,        Dollars & rhs);
+
+  private:
+   int cents;  // more accurate than floating point numbers; no errors!
+};
+
+#endif // DOLLARS_H
+queue.h0000600003530400007650000002012012713551744012167 0ustar  cs235s3g5student#ifndef  QUEUE_H
+#define QUEUE_H
+#include <cassert>
+#include <iostream>
+#include <fstream>
+#include <stack>
+using namespace std;
+
+
+//stack class
+template <class T>
+class Queue
+{
+
+  public:
+
+   //default constructor
+  Queue():  Size(0),Capacity(0), vector(0x00000000), myFront(-1), myBack(-1){}
+
+   //destructor
+   ~Queue(){};
+   // { if (Size) delete [] vector; }
+
+   //non-default constructor Needed for test 1
+   Queue(int capacity) throw (const char *);
+
+   //copy constructor
+   Queue(const Queue& rhs)throw (const char *);
+
+
+   // assignment operator
+   Queue & operator = (const Queue & rhs)throw (const char *)
+   {
+           try
+           {  Queue temp = rhs;
+              Capacity = temp.Capacity;
+              vector = temp.vector;
+              Size = temp.Size;
+			  myFront = temp.myFront; 
+			  myBack = temp.myBack; 
+              return *this;
+           }
+           catch (std::bad_alloc)
+           {
+              throw "ERROR: Unable to allocate a new buffer for Queue";
+           }
+
+   }
+
+   //empty()
+   bool empty()const {return Size ==0;  }
+   //clear()
+   void clear(){Size =0; }
+
+   //size()
+   int size()const{return Size; }
+   //capacity()
+   int capacity()const {   return Capacity;}
+   
+   int clear() const {Size =0; return Size; }; 
+
+   //push_back
+   void push(const T & t) throw (const char *);
+   void pop() throw (const char *);
+    T front() throw (const char *); 
+	 T back() throw (const char *); 
+   
+
+   // return an iterator to the beginning of the list
+   //QueueIterator <T> begin() { return QueueIterator<T>(vector); }
+
+   // return an iterator to the end of the list
+   // QueueIterator <T> end() { return QueueIterator<T>(vector + Size);};
+
+
+
+   // operators[]
+   T & operator [](int& index) const throw(const char *)
+   {
+      if (Capacity < 0 || Capacity < Size)
+         throw "ERROR: Invalid index\n";
+      return vector[index];
+   }
+
+   T & operator [](int& index) throw(const char *)
+   {
+      if (Capacity < 0 || Capacity < Size)
+         throw "ERROR: Invalid index\n";
+      return vector[index];
+   }
+
+
+
+
+  private:
+
+   int Size;
+   T * vector;
+   int Capacity;
+   int myFront; 
+   int myBack; 
+  
+
+
+};
+
+/**********************************************
+ * Queue : NON-DEFAULT CONSTRUCTOR
+ * Preallocate the Queue to "capacity"
+ **********************************************/
+template <class T>
+Queue <T> :: Queue(int capacity) throw (const char *)
+{
+   assert(capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (capacity == 0)
+   {
+      this->Capacity = this->Size = 0;
+      this->vector = 0x00000000;
+	  this->myFront= 0; 
+	  this->myBack=0; 
+      return;
+   }
+
+   // attempt to allocate
+            try
+            {
+               vector = new T[capacity];
+
+            }
+            catch (std::bad_alloc)
+            {
+               //problem for test 1
+               throw "ERROR: Unable to allocate buffer";
+
+
+            }
+
+
+            // copy over the stuff
+            this->Capacity = capacity;
+            this->Size = 0;
+			this->myBack=0; 
+			this->myFront=0; 
+
+}
+
+/*******************************************
+ * Queue:: COPY CONSTRUCTOR
+ *******************************************/
+template <class T>
+Queue <T> :: Queue(const Queue <T> & rhs) throw (const char *)
+{
+   assert(rhs.Capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (rhs.Capacity == 0)
+   {
+      Capacity = Size = 0;
+      vector = 0x00000000;
+	  myFront=myBack=0; //sets capacity to 1; 
+      return;
+   }
+
+   // attempt to allocate
+          try
+          {
+             vector = new T[rhs.Capacity];
+          }
+          catch (std::bad_alloc)
+          {
+             throw "ERROR: Unable to allocate buffer";
+          }
+
+          // copy over the stuff
+          assert(rhs.Size >= 0 && rhs.Size <= rhs.Capacity);
+          this->Capacity = rhs.Capacity;
+          this->Size = rhs.Size;
+		  this->myFront = rhs.myFront; 
+		  this->myBack = rhs.myBack;  
+       // for (int i = myFront; i < Size; i++)
+           // vector[i] = rhs.vector[i];
+			//for (int i = 0; i < Size; i++)
+         // vector[i] = rhs.vector[i];
+		 
+		 if ((myFront==0) && (myBack > myFront) && (myBack <= Capacity))
+		  {
+		  for(int i=myFront; i <myBack; i++)
+		  vector[i]=rhs.vector[i];
+		  if (myBack +1 <Capacity)
+		  {
+		  for (int i=myBack; i <Capacity; i++)
+		  vector[i] = T(); 
+		  }
+		  }
+		  
+		  else if ((myFront>0) && (myBack >myFront)&& (myBack <=Capacity))
+		  {
+		  for (int i =myFront; i<myBack; i++)
+		  vector[i]=rhs.vector[i]; 
+		  if (myBack +1 < Capacity)
+		  {
+		  for (int i = myBack; i < Capacity; i++)
+		  vector[i] = T(); 
+		  for (int i=0; i<myFront; i++)
+		  vector[i] = T();
+		  }
+		  }
+		  
+		   else if ((myFront>0) && (myBack <myFront)&& (myFront <=Capacity))
+		  {
+		  for (int i =myFront; i<Capacity; i++)
+		  vector[i]=rhs.vector[i]; 
+		  
+		  for (int i = 0; i < myBack; i++)
+		  vector[i] = rhs.vector[i]; 
+		  for (int i=myBack; i<myFront; i++)
+		  vector[i] = T();
+		  }
+		  
+		  
+		  else if (empty() && Capacity >0)
+		  {
+		  for (int i=0; i<Capacity; i++)
+		  vector[i]=T(); 
+		  }
+		 
+}
+
+/***************************************************
+ * Queue :: push
+ * Insert an item on the end of the Queue
+ **************************************************/
+template <class T>
+void Queue <T> :: push(const T & t) throw (const char *)
+{
+
+	if (this->Capacity == 0)
+	{
+		delete[] vector;
+		Capacity = 1;
+		this->vector = new T[Capacity];
+		
+		//this->vector=vector; 
+		this->Capacity=1; 
+		this->myFront=0; 
+		this->myBack=0; 
+		this->Size=0; 
+	}
+	 /*if (Capacity == Size)
+	{
+try
+{
+		Capacity *= 2;
+		T * tempArray = new T[Capacity];
+		for (int i = 0; i < this->Size; i++)
+		{	tempArray[i] = this->vector[i];}
+		delete[] this->vector;
+		this->vector = tempArray;
+	
+	
+	}
+	catch (std::bad_alloc)
+	{
+		throw "ERROR: Unable to allocate a new buffer for Vector";
+	}
+	
+	
+	
+}*/
+
+
+if(myBack==Capacity)
+myBack=0; 
+this->vector[myBack]=t; 
+myBack++; 
+Size++; 
+
+//if (Capacity == Size)
+//{
+//	try
+//	{
+//		Capacity *= 2;
+//		T * tempArray = new T[Capacity];
+//		for (int i = 0; i < this->Size; i++)
+//		{
+//			tempArray[i] = this->vector[i];
+//		}
+//		delete[] this->vector;
+//		this->vector = tempArray;
+//
+//
+//	}
+//	catch (std::bad_alloc)
+//	{
+//		throw "ERROR: Unable to allocate a new buffer for Vector";
+//	}
+//
+//
+//
+//}
+
+if (Capacity == Size)
+{
+	try
+	{
+		Capacity *= 2;
+		T * tempArray = new T[Capacity];
+		for (int i = 0; i < this->Size; i++)
+		{
+			tempArray[i] = this->vector[i];
+		}
+		delete[] this->vector;
+		this->vector = tempArray;
+
+
+	}
+	catch (std::bad_alloc)
+	{
+		throw "ERROR: Unable to allocate a new buffer for Vector";
+	}
+
+
+
+}
+
+}
+//pop()
+/***************************************************
+ * Queue :: pop
+ * Removes an item from the end of the stack
+ **************************************************/
+template <class T>
+ void Queue <T> :: pop() throw (const char *)
+{
+	if (empty())
+		throw "ERROR: attempting to pop from an empty queue";
+	else
+	{
+	myFront=(myFront + 1) % Capacity;
+	Size--; 
+	//vector[myFront];
+	
+	//if(myFront==Capacity)
+	//{
+	//myFront=0; //problem here. 
+	//}
+	//else
+	//myFront++; 
+	//Size--; 
+	}
+}
+
+
+
+/***************************************************
+ * Queue :: front
+ * Returns the item currently at the end of the stack
+ **************************************************/
+template <class T>
+T Queue <T> :: front() throw (const char *)
+{
+	if (empty())
+		throw "ERROR: attempting to access an item in an empty queue";
+	return vector[myFront];   
+}
+
+/***************************************************
+ * Queue :: back
+ * Returns the item currently at the end of the stack
+ **************************************************/
+template <class T>
+T Queue <T> :: back() throw (const char *)
+{
+	if (empty())
+		throw "ERROR: attempting to access an item in an empty queue";
+		//myBack = (myBack-1)%Capacity; 
+	return vector[Size];   
+}
+
+
+ 
+
+#endif
+stock.h0000600003530400007650000000115112713551316012164 0ustar  cs235s3g5student/***********************************************************************
+ * Header:
+ *    STOCK
+ * Summary:
+ *    This will contain just the prototype for stocksBuySell(). You may
+ *    want to put other class definitions here as well.
+ * Author
+ *    <your names here>
+ ************************************************************************/
+
+#ifndef STOCK_H
+#define STOCK_H
+
+#include "dollars.h"   // for Dollars defined in StockTransaction
+#include "queue.h"     // for QUEUE
+#include <iostream>    // for ISTREAM and OSTREAM
+
+// the interactive stock buy/sell function
+void stocksBuySell();
+
+#endif // STOCK_H
+
+dollars.cpp0000600003530400007650000000543512713551315013044 0ustar  cs235s3g5student/***********************************************************************
+ * Program:
+ *    DOLLARS
+ * Summary:
+ *    This file contains the notion of money
+ * Author
+ *    Br. Helfrich
+ ************************************************************************/
+
+#include <iostream>  // for OSTREAM and ISTREAM
+#include <cassert>   // for ASSERT
+#include "dollars.h" // for the class definition
+using namespace std;
+
+/********************************************
+ * DOLLARS READ
+ * This function reads dollars from the input stream:
+ *     - skips leading white spaces
+ *     - skips leading $ signs
+ *     - only consumes two decimal places
+ *     - negative values work with () or -
+ * For example:
+ *   $1.34     -->  134 cents
+ *   -1.2      --> -120 cents
+ *  $(4.211)   --> -421 cents
+ *   -6        --> -600 cents
+ *******************************************/
+istream & operator >> (istream & in, Dollars & rhs)
+{
+   // initially zero
+   rhs.cents = 0;
+   if (in.fail())
+      return in;
+
+   // skip leading spaces and dollar signs;
+   while (isspace(in.peek()) || in.peek() == '$')
+      in.get();
+
+   // is the next character a negative?
+   bool negative = false;
+   while ('-' == in.peek() || '(' == in.peek())
+   {
+      negative = true;
+      in.get();
+   }
+
+   // consume digits, assuming they are dollars
+   while (isdigit(in.peek()))
+      rhs.cents = rhs.cents * 10 + (in.get() - '0');
+
+   // everything up to here was dollars so multiply by 100
+   rhs.cents *= 100;
+
+   // did we get a decimal
+   if ('.' == in.peek())
+   {
+      // consume the decimal
+      in.get();
+
+      // next digit is in the 10cent place if it exists
+      if (isdigit(in.peek()))
+         rhs.cents += (in.get() - '0') * 10;
+      // the final digit is the 1cent place if it exists
+      if (isdigit(in.peek()))
+         rhs.cents += (in.get() - '0');
+   }
+
+   // take care of the negative stuff
+   rhs.cents *= (negative ? -1 : 1);
+
+   // see if there is a trailing )
+   if (')' == in.peek())
+      in.get();
+
+   return in;
+}
+
+/*******************************************
+ * DOLLARS DISPLAY
+ * This function displays dollars on the screen
+ *     - All dollars are preceeded with $
+ *     - Negative amounts have () rather than -
+ *     - Exactly two decimal places are always shown
+ * For example:
+ *   124 cents   --> $1.24
+ *   300 cents   --> $3.00
+ *  -498 cents   --> $(4.98)
+ ******************************************/
+ostream & operator << (ostream & out, const Dollars & rhs)
+{
+   // units
+   out << '$';
+   int cents = rhs.cents;
+
+   // negative?
+   if (rhs.cents < 0)
+   {
+      out << '(';
+      cents *= -1;
+   }
+   assert(cents >= 0);
+
+   // dollars
+   out << cents / 100;
+
+   // cents
+   out << '.'
+       << (cents % 100 < 10 ? "0" : "")
+       << cents % 100;
+
+   // negative?
+   if (rhs.cents < 0)
+      out << ')';
+
+   return out;
+}
+
+stock.cpp0000600003530400007650000000770612713552460012534 0ustar  cs235s3g5student/***********************************************************************
+ * Implementation:
+ *    STOCK
+ * Summary:
+ *    This will contain the implementation for stocksBuySell() as well
+ *    as any other function or class implementation you need
+ * Author
+ *    <your names here>
+ **********************************************************************/
+
+#include <iostream>    // for ISTREAM, OSTREAM, CIN, and COUT
+#include <string>      // for STRING
+#include <cassert>     // for ASSERT
+#include "stock.h"     // for STOCK_TRANSACTION
+#include "queue.h"     // for QUEUE
+#include <sstream>     // for ISTRINGSTREAM
+#include <cstdlib>
+using namespace std;
+
+/************************************************
+ * STOCKS BUY SELL
+ * The interactive function allowing the user to
+ * buy and sell stocks
+ ***********************************************/
+void stocksBuySell()
+{
+	// instructions
+	cout << "This program will allow you to buy and sell stocks. "
+		<< "The actions are:\n";
+	cout << "  buy 200 $1.57   - Buy 200 shares at $1.57\n";
+	cout << "  sell 150 $2.15  - Sell 150 shares at $2.15\n";
+	cout << "  display         - Display your current stock portfolio\n";
+	cout << "  quit            - Display a final report and quit the program\n";
+
+	// your code here...
+	Queue <int> shares;
+	Queue <Dollars> prices;
+	Queue <int> soldShares;
+	Queue <Dollars> sales;
+	string input;
+	int share;
+	Dollars price, proceeds = 0;
+	
+	do
+	{
+		//prompt user for input
+		cout << "> ";
+		cin >> input;
+		if (input == "buy")
+		{
+			cin >> share >> price;
+			shares.push(share);
+			prices.push(price);
+		}
+
+		if (input == "sell")
+		{
+			assert(!shares.empty());
+			cin >> share >> price;
+			soldShares.push(share);
+			sales.push(price);
+			
+		}
+
+		if (input == "display")
+		{
+			Queue <int> copyShares(shares);
+			Queue <Dollars> copyPrices(prices);
+			cout << "Currently held:\n";
+			while (!copyShares.empty())
+			{
+				cout << "\tBought " << copyShares.front()
+					<< " shares at " << copyPrices.front() << endl;
+				copyShares.pop();
+				copyPrices.pop();
+				//cout << "Proceeds: " << proceeds;
+			}
+		}
+
+		if (input == "quit")
+			exit(-1);
+	} while (input != "quit");
+}
+// try{
+// 
+// do
+//   {
+//      // handle errors
+//      if (cin.fail())
+//      {
+//         cin.clear();
+//         cin.ignore(256, '\n');
+//      }
+//      
+//      // prompt for infix
+//       cout << "> ";
+// 
+//      getline(cin, choice);
+//
+//	  // push into buy array
+//	    if (choice == "buy")
+//      {
+//	  
+//	   while (i < choice.length()) {
+//      buy = choice[i];
+//	  q.push(buy);
+//         i++;
+//         continue;
+//		 }
+//      }
+//	  //push into sell array
+//	    if (choice == "sell")
+//      {
+//	 /*
+//	 When selling shares, use the oldest transactions first. 
+//	 This may mean one of three things: 1) only part of a 
+//	 buy-batch is used, 2) a complete buy-batch is used, 
+//	 or 3) multiple buy-batches are required to cover a given 
+//	 stock sell. Your program should handle all three cases.
+//	 */
+//
+//	 //  while (i < choice.length()) {
+//      //sell = choice[i];
+//	 // q.push(sell);
+//     //    i++;
+//     //    continue;
+//	//	 }
+//      }
+//	  
+//	  
+//		/*
+//		Compute the profit from a given sell buy subtracting the 
+//		sell price from the buy price, multiplying the result by 
+//		the number of shares sold. The proceeds are the sum of all 
+//		the stock sells in the history.
+//		*/
+//      // generate display
+//      if (choice == "display")
+//      {
+//		  /*
+//		  Only display "Currently held:" and "Sell History:" 
+//		  if there are transactions to display.
+//		  */
+//         //string postfix = convertInfixToPostfix(input);
+//         cout << "Currently held:\n"; 
+//		 //return all bought
+////cout << "\tBought " <<buy[0] <<" shares at " <<buy[1] << endl; 
+// q.pop();
+//               break;
+//      }
+//	  
+//	
+//	  
+//	  
+//   }
+//   while (choice != "quit");
+//   }
+//   catch (const char * error)
+//   {
+//      cout << error << endl;
+//   }
+//   
+//   if (choice == "quit")
+//   {
+//   exit(-1); 
+//   }
+//}week03.cpp0000600003530400007650000002132412713551315012475 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 03, Queue
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise the Queue class.  When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>    // for CIN and COUT
+#include <string>      //
+#include "queue.h"     // your Queue class should be in queue.h
+#include "stock.h"     // your stocksBuySell() function
+#include "dollars.h"   // for the Dollars class
+using namespace std;
+
+
+// prototypes for our four test functions
+void testSimple();
+void testPushPopTop();
+void testCircular();
+void testErrors();
+
+// To get your program to compile, you might need to comment out a few
+// of these. The idea is to help you avoid too many compile errors at once.
+// I suggest first commenting out all of these tests, then try to use only
+// TEST1.  Then, when TEST1 works, try TEST2 and so on.
+#define TEST1   // for testSimple()
+#define TEST2   // for testPushPopTop()
+#define TEST3   // for testCircular()
+#define TEST4   // for testErrors()
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu
+   cout << "Select the test you want to run:\n";
+   cout << "\t1. Just create and destroy a Queue\n";
+   cout << "\t2. The above plus push, pop, and top\n";
+   cout << "\t3. The above plus test implementation of the circular Queue\n";
+   cout << "\t4. Exercise the error handling\n";
+   cout << "\ta. Selling Stock\n";
+
+   // select
+   char choice;
+   cout << "> ";
+   cin  >> choice;
+   switch (choice)
+   {
+      case 'a':
+         stocksBuySell();
+         break;
+      case '1':
+         testSimple();
+         cout << "Test 1 complete\n";
+         break;
+      case '2':
+         testPushPopTop();
+         cout << "Test 2 complete\n";
+         break;
+      case '3':
+         testCircular();
+         cout << "Test 3 complete\n";
+         break;
+      case '4':
+         testErrors();
+         cout << "Test 4 complete\n";
+         break;
+      default:
+         cout << "Unrecognized command, exiting...\n";
+   }
+
+   return 0;
+}
+
+/*******************************************
+ * TEST SIMPLE
+ * Very simple test for a Queue: create and destroy
+ ******************************************/
+void testSimple()
+{
+#ifdef TEST1
+   try
+   {
+      // Test 1.a: bool Queue with default constructor
+      cout << "Create a bool Queue using default constructor\n";
+      Queue <bool> q1;
+      cout << "\tSize:     " << q1.size()                   << endl;
+      cout << "\tCapacity: " << q1.capacity()               << endl;
+      cout << "\tEmpty?    " << (q1.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.b: double Queue with non-default constructor
+      cout << "Create a double Queue using the non-default constructor\n";
+      Queue <double> q2(10 /*capacity*/);
+      cout << "\tSize:     " << q2.size()                   << endl;
+      cout << "\tCapacity: " << q2.capacity()               << endl;
+      cout << "\tEmpty?    " << (q2.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.c: copy the Queue using the copy constructor
+      {
+         cout << "Create a double Queue using the copy constructor\n";
+         Queue <double> q3(q2);
+         cout << "\tSize:     " << q3.size()                   << endl;
+         cout << "\tCapacity: " << q3.capacity()               << endl;
+         cout << "\tEmpty?    " << (q3.empty() ? "Yes" : "No") << endl;
+      }
+
+      // Test 1.d: copy the Queue using the assignment operator
+      cout << "Copy a double Queue using the assignment operator\n";
+      Queue <double> q4(2);
+      q4 = q2;
+      cout << "\tSize:     " << q4.size()                   << endl;
+      cout << "\tCapacity: " << q4.capacity()               << endl;
+      cout << "\tEmpty?    " << (q4.empty() ? "Yes" : "No") << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }   
+#endif //TEST1
+}
+
+#ifdef TEST2
+/******************************************
+ * DISPLAY
+ * Display the contents of the queue
+ ******************************************/
+template <class T>
+ostream & operator << (ostream & out, Queue <T> q) 
+{
+   
+   out << "{ ";
+   while (!q.empty())
+   {
+      out << q.front() << ' ';
+      q.pop();
+   }
+   out << '}';
+
+   return out;
+}
+#endif // TEST2
+
+/*******************************************
+ * TEST PUSH POP TOP
+ * Add a whole bunch of items to the Queue.  This will
+ * test the Queue growing algorithm
+ *****************************************/
+void testPushPopTop()
+{
+#ifdef TEST2
+   try
+   {
+      // create
+      Queue <Dollars> q1;
+      Dollars noMoney;
+
+      // fill
+      cout << "Enter money amounts, type $0 when done\n";
+      Dollars money;
+      do
+      {
+         cout << "\t" << q1 << " > ";
+         cin  >> money;
+         if (money != noMoney)
+            q1.push(money);
+      }
+      while (money != noMoney);
+
+      // display how big it is
+      cout << "\tSize:     " << q1.size()                   << endl;
+      cout << "\tEmpty?    " << (q1.empty() ? "Yes" : "No") << endl;
+      cout << "\tCapacity: " << q1.capacity()               << endl;
+
+      // make a copy of it using the assignment operator and copy constructor
+      Queue <Dollars> q2(2);
+      q2 = q1;
+      Queue <Dollars> q3(q1);
+
+      // destroy the old copy
+      q1.clear();
+
+      // display the two copies
+      cout << "\tq1 = " << q1 << endl;
+      cout << "\tq2 = " << q2 << endl;
+      cout << "\tq3 = " << q3 << endl;
+   }
+   catch (const char * sError)
+   {
+      cout << sError << endl;
+   }
+   
+#endif // TEST2   
+}
+
+/*******************************************
+ * TEST CIRCULAR
+ * This will test whether the circular aspect
+ * of the Queue is working correctly
+ ******************************************/
+void testCircular()
+{
+#ifdef TEST3
+   // create
+   cout << "Create a string Queue with the default constructor\n";
+   Queue <string> q(4);
+
+   // instructions
+   cout << "\tTo add the word \"dog\", type +dog\n";
+   cout << "\tTo pop the word off the queue, type -\n";
+   cout << "\tTo display the state of the queue, type *\n";
+   cout << "\tTo quit, type !\n";
+
+   // interact
+   char instruction;
+   string word;
+   try
+   {
+      do
+      {
+         cout << "\t" << q << " > ";
+         cin  >> instruction;
+         switch (instruction)
+         {
+            case '+':
+               cin >> word;
+               q.push(word);
+               break;
+            case '-':
+               q.pop();
+               break;
+            case '*':
+               cout << "Size:     " << q.size()                   << endl;
+               cout << "Empty?    " << (q.empty() ? "Yes" : "No") << endl;
+               cout << "Capacity: " << q.capacity()               << endl;
+               break;
+            case '!':
+               break;
+            default:
+               cout << "Invalid command\n";
+         }            
+      }
+      while (instruction != '!');
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+
+   // verify that copy works as we expect
+   Queue <string> qCopy(q);
+   assert(q.size()     == qCopy.size()    );
+   assert(q.empty()    == qCopy.empty()   );
+   while (!q.empty())
+   {
+      assert(q.front() == qCopy.front());
+      assert(q.back()  == qCopy.back() );
+      assert(q.size()  == qCopy.size() );
+      q.pop();
+      qCopy.pop();
+   }
+#endif // TEST3
+}
+
+/*******************************************
+ * TEST ERRORS
+ * Numerous error conditions will be tested
+ * here, including bogus popping and the such
+ *******************************************/
+void testErrors()
+{
+#ifdef TEST4
+   // create
+   Queue <char> q;
+
+   // test using front() with an empty queue
+   try
+   {
+      q.front();
+      cout << "BUG! We should not be able to front() with an empty queue!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tQueue::front() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }
+
+   // test using back() with an empty queue
+   try
+   {
+      q.back();
+      cout << "BUG! We should not be able to back() with an empty queue!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tQueue::back() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }
+
+   // test using pop() with an empty queue
+   try
+   {
+      q.pop();
+      cout << "BUG! We should not be able to pop() with an empty queue!\n";
+   }
+   catch (const char * error)
+   {
+      cout << "\tQueue::pop() error message correctly caught.\n"
+           << "\t\"" << error << "\"\n";
+   }      
+#endif // TEST4
+}
+makefile0000600003530400007650000000216612713551720012376 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 03, QUEUE
+#     Brother JonesL, CS235
+# Author:
+#     Tiffany Gohnert John Vehikite
+# Summary:
+#     <put a description here>
+# Time:
+#     <how long did it take to complete this program>?
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: queue.h week03.o dollars.o stock.o
+	g++ -o a.out week03.o dollars.o stock.o
+	tar -cf week03.tar *.h *.cpp makefile
+
+dollarsTest: dollars.o dollarsTest.cpp
+	g++ -o dollarsTest dollars.o dollarsTest.cpp
+
+##############################################################
+# The individual components
+#      week03.o       : the driver program
+#      dollars.o      : the Dollars class
+#      stock.o        : the logic for the stock program
+##############################################################
+week03.o: queue.h week03.cpp
+	g++ -c week03.cpp
+
+dollars.o: dollars.h dollars.cpp
+	g++ -c dollars.cpp
+
+stock.o: stock.h stock.cpp queue.h
+	g++ -c stock.cpp
