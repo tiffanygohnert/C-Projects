@@ -1,0 +1,1799 @@
+graph.h0000600003530400007650000000673012743436637012165 0ustar  cs235s3g5student/***********************************************************************
+ * Component:
+ *    Week 12, Graph
+ *    Brother JonesL, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This class represents a Graph
+ ************************************************************************/
+
+#ifndef GRAPH_H
+#define GRAPH_H
+//#include <vector>
+#include "vertex.h"
+#include "set.h"
+
+ /*****************************************************************
+ * GRAPH
+ * Create a Graph
+ *****************************************************************/
+ //template <class T>
+class Graph
+{
+public:
+
+	// non-default constructor
+	Graph(int numBuckets)
+	{
+		//numElements = 0;
+		//if (numBuckets >= 25)
+		//	numBuckets /= 5;
+		this->numBuckets = numBuckets;
+		elements = new int*[numBuckets];
+
+		for (int i = 0; i < numBuckets; i++)
+		{
+			elements[i] = new int[numBuckets];
+			for (int j = 0; j < numBuckets; j++)
+			{
+				elements[i][j] = 0;
+			}
+		}
+
+	}
+
+	// copy constructor
+	Graph(const Graph & rhs)
+	{
+		this->elements = rhs.elements;
+		this->numBuckets = rhs.numBuckets;
+		//this->numElements = rhs.numElements;
+	}
+
+	// destructor
+	~Graph() { /*clear();*/ }
+
+	// Returns the number of elements in the Graph
+	int  size() const { return numBuckets; }   // BinaryNode class needs a size function
+
+	// determine if the hash is empty
+	//bool clear() const { return numElements == 0; }
+
+	// clear all the contents of the hash
+	void clear() {  }
+
+	
+	//add(): Add one or more edge to the Graph. There are two overloaded add() 
+	//functions: the first taking two vertices representing the new edge; 
+	//the second taking a vertex and a set of vertices.
+	void add(LVertex & edge, Set<Vertex>& path) 
+	{
+		SetIterator <Vertex> it;
+		for (it = path.begin(); it != path.end(); it++)
+		{
+			Vertex tempVert = *it;
+			elements[edge.index()][tempVert.index()] = 1;
+		}
+	}
+	void add(CVertex & edge, CVertex& path) 
+	{
+		elements[edge.index()][path.index()] = 1;
+	}
+	
+	void add(LVertex & edge, LVertex& path) 
+	{
+		elements[edge.index()][path.index()] = 1;
+	}
+	
+	void add(CourseVertex & edge, CourseVertex & path) 
+	{
+		elements[edge.index()][path.index()] = 1;
+	}
+
+	//isEdge(): This method takes two vertices as parameters.
+	// It returns true if there is an edge connecting the first 
+	//vertex to the second.
+	bool isEdge(CVertex & edge, CVertex& path) 
+	{
+		return elements[edge.index()][path.index()] == 1;
+	}
+
+
+	// This method takes on vertex as a parameter and 
+	//returns the set of vertices that share an edge with it.
+	Set <Vertex> findEdges(CourseVertex vertex)
+	{
+		Set <Vertex> tempSet;
+		tempSet.insert(elements[vertex.index()][1]);
+		if (elements[vertex.index()][2])
+			tempSet.insert(elements[vertex.index()][2]);
+		return tempSet;
+	}
+
+
+	//  Two vertices are passed. These represent the start vertex 
+	//and the end vertex. The return value will be a vector of all 
+	//the vertices on the shortest path between the two.
+	int findPath(int t)
+	{
+		return t;
+	}
+
+
+
+	// operator=: Assignment operator. Copy one Graph into another. 
+	// If there is insufficient memory to allocate a new buffer, then 
+	// the following exception is thrown:
+	// ERROR: Unable to allocate memory for the hash.
+	Graph  & operator = (const Graph  & rhs)
+	{
+		this->elements = rhs.elements;
+		this->numBuckets = rhs.numBuckets;
+		//this->numElements = rhs.numElements;
+		return *this;
+	}
+
+
+
+private:
+
+	// member variables
+	// vector < vector <int> > elements;
+	int ** elements;
+	//int numElements; // size()
+	int numBuckets; // capacity()
+};
+
+
+#endif // GRAPH_Hmaze.h0000600003530400007650000000113312742401210011762 0ustar  cs235s3g5student/***********************************************************************
+ * Component:
+ *    Week 13, Maze
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    Draw and solve a maze
+ ************************************************************************/
+
+#ifndef MAZE_H
+#define MAZE_H
+
+#include "graph.h"
+#include "vector.h"
+
+// solve the maze, the main program function
+void solveMaze();
+
+// read a maze in from a file
+Graph readMaze(const char * fileName);
+
+// display a maze on the screen
+//void drawMaze(const Graph & g, const Vector <Vertex> & path);
+
+#endif // MAZE_H
+set.h0000600003530400007650000003006312741537056011646 0ustar  cs235s3g5student﻿#ifndef  SET_H
+#define SET_H
+#include <cassert>
+#include <iostream>
+#include <fstream>
+#include <algorithm> // sort; binary_search
+#include <stdio.h>
+using namespace std;
+
+
+// forward declaration for SetIterator
+template <class T>
+class SetIterator;
+
+// forward declaration for SetIterator
+template <class T>
+class SetConstIterator;
+
+//set class
+template <class T>
+class Set
+{
+
+  public:
+
+   //default constructor
+  Set():  Size(0),Capacity(0), vector(0x00000000){}
+
+   //destructor
+   ~Set(){};
+   // { if (Size) delete [] vector; }
+
+   //non-default constructor 
+   Set(int capacity) throw (const char *);
+
+   //copy constructor
+   Set(const Set& rhs)throw (const char *);
+
+
+   // assignment operator
+   Set & operator = (const Set & rhs) throw (const char *)
+   {
+           try
+           {  
+			   //Set temp = rhs;
+			   Capacity = rhs.Capacity;
+			   vector = rhs.vector;
+			   Size = rhs.Size;
+			   return *this;
+           }
+           catch (std::bad_alloc)
+           {
+              throw "ERROR: Unable to allocate a new buffer for Set";
+           }
+
+   }
+
+   //empty()
+   bool empty() const { return Size == 0; }
+
+   //size()
+   int size()const { return Size; }
+
+   //capacity()
+   int capacity()const { return Capacity; }
+
+   //clear()
+   void clear() { Size = 0; }
+
+   int clear() const { Size =0; return Size; } 
+
+   // return an iterator to the beginning of the list
+   SetIterator <T> begin() { return SetIterator<T>(vector); }
+   
+   SetConstIterator <T> cbegin() const { return SetConstIterator <T>(vector); }
+
+   // return an iterator to the end of the list
+   SetIterator <T> end() { return SetIterator<T>(vector + Size); }
+
+   SetConstIterator <T> cend() const { return SetConstIterator <T>(vector + Size); }
+
+   SetIterator <T> find(const T & t)
+   {
+	   /*
+	   find(): Takes a template item as a 
+	   parameter and returns an iterator 
+	   pointing to the corresponding item in 
+	   the set. If the item does not exist, 
+	   it returns Set::end(). Note that the 
+	   pseudocode in the reading returns an 
+	   index so some modification to that 
+	   pseudocode will be required.
+	   */
+
+	   /*
+	   find (element)
+		iBegin = 0
+		iEnd = numElements – 1
+		WHILE iBegin ≤ iEnd
+			iMiddle = (iBegin + iEnd) / 2
+			IF element = array[iMiddle]
+				RETURN iMiddle
+			IF element < array[iMiddle]
+				iEnd = iMiddle – 1
+			ELSE
+				iBegin = iMiddle + 1
+		RETURN numElements
+	   */
+	  // Unsorted
+	   SetIterator <T> it;
+	   for (it = begin(); it != end(); it++)
+	   {
+		   if (t == *it)
+
+			   return it;
+			 		   
+	   }
+	 
+	   return it;
+	   
+   }
+
+   void insert(const T & t)
+   {
+	   /*
+	   insert(): Add an item to the set. This method
+	   has a void return type. One parameter will be
+	   expected, the item to be added to the set. Note
+	   that the order in the set must be preserved. This
+	   means that the correct location in the set must
+	   be found before insertion. Also, if the item
+	   already exists in the set, then nothing is done.
+	   Of course, if the capacity is insufficient to hold
+	   the newly inserted item, then it will need to double
+	   the buffer size just like Container.
+	   */
+
+	   /*
+	   insert(element)
+		iInsert = find(element)
+		if array[iInsert] ≠ element
+			FOR i = numElements … iInsert by -1’s
+				array[i + 1] = array[i]
+			array[iInsert] = element
+			num_elements++
+	   */
+	   
+	   if (this->Capacity == 0)
+	   {
+		   delete[] vector;
+		   Capacity = 1;
+		   this->vector = new T[Capacity];
+
+		   //this->vector=vector; 
+		   this->Capacity = 1;
+		   this->Size = 0;
+	   }
+
+	   // Sorted
+	   /*SetIterator <T> it;
+	   SetIterator <T> iInsert = find(t);
+	   if (*iInsert != t)
+	   {
+		   for (it = this->end(); iInsert !=begin(); iInsert--)
+		   {
+			   
+		   }
+	   }*/
+
+	 
+
+	   if (Capacity == Size)
+	   {
+		   try
+		   {
+			   Capacity *= 2;
+			   T * tempArray = new T[Capacity];
+			   for (int i = 0; i < this->Size; i++)
+			   {
+				   tempArray[i] = this->vector[i];
+			   }
+			   delete[] this->vector;
+			   this->vector = tempArray;
+
+
+		   }
+		   catch (std::bad_alloc)
+		   {
+			   throw "ERROR: Unable to allocate a new buffer for Set";
+		   }
+	   }
+	     // Unsorted
+	 
+
+	 SetIterator <T> it;
+	   SetIterator <T> itEnd;
+	   
+	  
+	   for (it =begin(); it != end(); it++)
+	   {
+		   if (t == *it)
+			   return;
+			   
+	   }
+	   
+	   Size++;	   
+	   vector[Size - 1] = t;
+	  sort(vector, vector + Size);
+	
+	   
+
+   }
+
+   void erase(SetIterator <T> it)
+   {
+	   /*
+	   erase(): Remove an element from the set. This method 
+	   takes an iterator as a parameter, referring to the 
+	   element to be removed from the set. Note that the 
+	   pseudocode in the reading takes an index so some 
+	   modification to that pseudocode will be required. 
+	   There is no return value.
+	   */
+
+	   /*
+	   delete(element)
+			iDelete= find(element)
+			if array[iDelete] = element
+				FOR i = iDelete … numElements
+					array[i] = array[I + 1]
+			numElements--
+	   */
+	   
+
+	   // Unsorted
+	   for (int i = 0; i < Size; i++)
+	   {
+		   if (vector[i] == (*it))
+		   {
+			   vector[i] = vector[--Size];
+			   break;
+		   }
+	   }
+
+	   // Sort vector
+	   sort(vector, vector + Size);
+   }
+
+   Set operator && (Set s)
+   {
+	   /*
+	   operator&&(): The intersection operator. The parameter 
+	   is a Set object and the return value is a new Set object 
+	   containing all the elements that are in both this and 
+	   in the parameter.
+	   */
+
+	   /*
+	   union(set1, set2)
+		iSet1 = 0
+		iSet2 = 0
+		WHILE iSet1 < set1.numElements OR iSet2 < set2.numElements
+			IF iSet1 == set1.numElements
+				setReturn.addToEnd(set2.array[iSet2++])
+			ELSE IF iSet2 == set2.num_elements
+				setReturn.addToEnd(set1.array[iSet1++])
+			ELSE IF set1.array[iSet1] == set2.array[iSet2]
+				setReturn.addToEnd(set1.array[iSet1])
+				iSet1++
+				iSet2++
+			ELSE IF set1.array[iSet1] < set1.array[iSet2]
+				setReturn.addToEnd(set1.array[iSet1++])
+			ELSE
+				setReturn.addToEnd(set2.array[iSet2++])
+		RETURN setReturn
+	   */
+
+	   // unsorted
+	   /*Set setReturn = *this;
+	   SetIterator <T> it;
+	   for (it = s.begin(); it != s.end(); it++)
+	   {
+		   setReturn.insert(*it);
+	   }
+	   return setReturn;*/
+	   Set setReturn;
+	   SetIterator <T> it;
+	   for (it = this->begin(); it != this->end(); it++)
+	   {
+		   if (s.find(*it) != s.end())
+			   setReturn.insert(*it);
+	   }
+	   return setReturn;
+
+
+   }
+
+   Set operator || (const Set s)
+   {
+	   /*
+	   operator||(): The union operator. The parameter is a 
+	   Set object and the return value is a new Set object 
+	   containing all the elements that are in either this or 
+	   in the parameter.
+	   */
+
+	   /*
+	   intersection(set1, set2)
+		iSet1 = 0
+		iSet2 = 0
+		WHILE iSet1 < set1.numElements OR iSet2 < set2.numElements
+			IF iSet1 == set1.numElements
+				RETURN setReturn
+			ELSE IF iSet2 == set2.num_elements
+				RETURN setReturn
+			ELSE IF set1.array[iSet1] == set2.array[iSet2]
+				setReturn.addToEnd(set1.array[iSet1])
+				iSet1++
+				iSet2++
+			ELSE IF set1.array[iSet1] < set1.array[iSet2]
+				iSet1++
+			ELSE
+				iSet2++
+		RETURN setReturn
+
+	   */
+
+	   //unsorted
+	   Set setReturn = s;
+	   SetIterator <T> it;
+	   for (it = begin(); it != end(); it++)
+	   {
+	    
+		   setReturn.insert(*it);
+	   }
+	  
+	   return setReturn;
+   }
+   
+    Set operator - (Set s)
+   {
+	   Set setReturn;
+	   SetIterator <T> it;
+	   for (it = this->begin(); it != this->end(); it++)
+	   {
+		   if (s.find(*it) != s.end())
+			     continue;
+		   if (setReturn.size() > 0)
+		   {
+			   if (setReturn.find(*it) != setReturn.end())
+				   continue;
+		   }
+		   setReturn.insert(*it);
+	   }
+	   return setReturn;
+   }
+
+
+   
+  private:
+
+   int Size;
+   T * vector;
+   int Capacity;
+};
+
+/**************************************************
+* SET ITERATOR
+* An iterator through Set
+*************************************************/
+template <class T>
+class SetIterator
+{
+public:
+	// default constructor
+	SetIterator() : p(NULL) {}
+
+	// initialize to direct p to some item
+	SetIterator(T * p) : p(p) {}
+
+	// copy constructor
+	SetIterator(const SetIterator & rhs) { *this = rhs; }
+
+	// assignment operator
+	SetIterator & operator = (const SetIterator & rhs)
+	{
+		this->p = rhs.p;
+		return *this;
+	}
+
+	// not equals operator
+	bool operator == (const SetIterator & rhs) const
+	{
+		return rhs.p == this->p;
+	}
+
+	// not equals operator
+	bool operator != (const SetIterator & rhs) const
+	{
+		return rhs.p != this->p;
+	}
+
+	// dereference operator
+	T & operator * ()
+	{
+		return *p;
+	}
+
+	// prefix increment
+	SetIterator <T> & operator ++ ()
+	{
+		p++;
+		return *this;
+	}
+
+	// postfix increment
+	SetIterator <T> operator++(int postfix)
+	{
+		SetIterator tmp(*this);
+		p++;
+		return tmp;
+	}
+
+	// prefix decrement
+	SetIterator <T> & operator -- ()
+	{
+		p--;
+		return *this;
+	}
+
+	// postfix increment
+	SetIterator <T> operator--(int postfix)
+	{
+		SetIterator tmp(*this);
+		p--;
+		return tmp;
+	}
+
+private:
+	T * p;
+};
+
+/**************************************************
+* SET CONST ITERATOR
+* A const iterator through Set
+*************************************************/
+template <class T>
+class SetConstIterator
+{
+public:
+	// default constructor
+	SetConstIterator() : p(NULL) {}
+
+	// initialize to direct p to some item
+	SetConstIterator(T * p) : p(p) {}
+
+	// copy constructor
+	SetConstIterator(const SetConstIterator & rhs) { *this = rhs; }
+
+	// assignment operator
+	SetConstIterator & operator = (const SetConstIterator & rhs)
+	{
+		this->p = rhs.p;
+		return *this;
+	}
+
+	// not equals operator
+	bool operator == (const SetConstIterator & rhs) const
+	{
+		return rhs.p == this->p;
+	}
+
+	// not equals operator
+	bool operator != (const SetConstIterator & rhs) const
+	{
+		return rhs.p != this->p;
+	}
+
+	// dereference operator
+	T & operator * ()
+	{
+		return *p;
+	}
+
+	// prefix increment
+	SetConstIterator <T> & operator ++ ()
+	{
+		p++;
+		return *this;
+	}
+
+	// postfix increment
+	SetConstIterator <T> operator++(int postfix)
+	{
+		SetConstIterator tmp(*this);
+		p++;
+		return tmp;
+	}
+
+	// prefix decrement
+	SetConstIterator <T> & operator -- ()
+	{
+		p--;
+		return *this;
+	}
+
+	// postfix increment
+	SetConstIterator <T> operator--(int postfix)
+	{
+		SetConstIterator tmp(*this);
+		p--;
+		return tmp;
+	}
+
+private:
+	T * p;
+};
+
+/**********************************************
+ * Set : NON-DEFAULT CONSTRUCTOR
+ * Preallocate the Set to "capacity"
+ **********************************************/
+template <class T>
+Set <T> :: Set(int capacity) throw (const char *)
+{
+   assert(capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (capacity == 0)
+   {
+      this->Capacity = this->Size = 0;
+      this->vector = 0x00000000;
+	  return;
+   }
+
+   // attempt to allocate
+            try
+            {
+               vector = new T[capacity];
+
+            }
+            catch (std::bad_alloc)
+            {
+               //problem for test 1
+               throw "ERROR: Unable to allocate buffer";
+
+
+            }
+
+
+            // copy over the stuff
+            this->Capacity = capacity;
+            this->Size = 0;
+}
+
+/*******************************************
+ * Set:: COPY CONSTRUCTOR
+ *******************************************/
+template <class T>
+Set <T> :: Set(const Set <T> & rhs) throw (const char *)
+{
+
+   assert(rhs.Capacity >= 0);
+      
+   // do nothing if there is nothing to do
+   if (rhs.Capacity == 0)
+   {
+      Capacity = Size=0;
+      vector = 0x00000000;
+      return;
+   }
+
+   // attempt to allocate
+   try
+   {
+      vector = new T[rhs.Capacity];
+   }
+   catch (std::bad_alloc)
+   {
+      throw "ERROR: Unable to allocate buffer";
+   }
+   
+   // copy over the stuff
+   assert(rhs.Size >= 0 && rhs.Size <= rhs.Capacity);
+   Capacity = rhs.Capacity;
+   Size = rhs.Size;
+   for (int i = 0; i < Size; i++)
+      vector[i] = rhs.vector[i];
+   
+   
+   
+}
+
+
+#endif
+vector.h0000600003530400007650000001237412741537017012357 0ustar  cs235s3g5student#ifndef  VECTOR_H
+#define VECTOR_H
+#include <cassert>
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+// forward declaration for ContainerIterator
+template <class T>
+class VectorIterator;
+
+//vector class
+template <class T>
+class Vector
+{
+ 
+  public: 
+
+   //default constructor 
+  Vector():  Size(0),Capacity(0), vector(0x00000000){} 
+  
+   //destructor
+   ~Vector(){};
+ // { if (Size) delete [] vector; }
+   
+   //non-default constructor Needed for test 1
+   Vector(int capacity) throw (const char *);
+ 
+  //copy constructor
+Vector(const Vector& rhs)throw (const char *); 
+
+
+//operator=
+	 // assignment operator
+    Vector & operator = (const Vector & rhs)throw (const char *)
+    {
+     try
+       {  Vector temp = rhs;
+   Capacity = temp.Capacity;
+   vector = temp.vector;
+   Size = temp.Size;
+   return *this;        
+       }
+       catch (std::bad_alloc)
+       {
+          throw "ERROR: Unable to allocate a new buffer for Vector";
+       }
+	   
+    }
+
+//empty()
+   bool empty()const {return Size ==0;  }
+//clear()
+   void clear(){Size =0; }
+
+   //size()
+    int size()const{return Size; }
+   //capacity()
+  int capacity()const {   return Capacity;}
+
+//push_back
+ void push_back(const T & t) throw (const char *);
+ 
+  // return an iterator to the beginning of the list
+    VectorIterator <T> begin() { return VectorIterator<T>(vector); }
+
+    // return an iterator to the end of the list
+    VectorIterator <T> end() { return VectorIterator<T>(vector + Size);};
+
+	
+
+    // operators[]
+       T & operator [](int& index) const throw(const char *)
+    {
+     if (Capacity < 0 || Capacity < Size)
+         throw "ERROR: Invalid index\n";
+       return vector[index];
+    }
+
+	    T & operator [](int& index) throw(const char *)
+    {
+       if (Capacity < 0 || Capacity < Size)
+          throw "ERROR: Invalid index\n";
+       return vector[index];
+    }
+
+   
+
+       
+private:
+
+ int Size;
+T * vector; 
+int Capacity; 
+
+ 
+}; 
+
+//iterator class
+template <class T> 
+class VectorIterator
+{
+public:
+    // default constructor
+   VectorIterator() : p(0x00000000) {}
+
+    // initialize to direct p to some item
+   VectorIterator(T * p) : p(p) {}
+
+    // copy constructor
+    VectorIterator(const VectorIterator & rhs) { *this = rhs; }
+
+    // assignment operator
+    VectorIterator & operator = (const VectorIterator & rhs)
+    {
+       this->p = rhs.p;
+       return *this;
+    }
+
+    // not equals operator
+    bool operator != (const VectorIterator & rhs) const
+    {
+       return rhs.p != this->p;
+    }
+
+    // dereference operator
+    T & operator * ()
+    {
+       return *p;
+    }
+
+    // prefix increment
+    VectorIterator <T> & operator ++ ()
+    {
+       p++;
+       return *this;
+    }
+
+    // postfix increment
+    VectorIterator <T> operator++(int postfix)
+    {
+       VectorIterator tmp(*this);
+       p++;
+       return tmp;
+    }
+    
+   private:
+    T * p;
+   
+
+};
+
+/**********************************************
+ * Vector : NON-DEFAULT CONSTRUCTOR
+ * Preallocate the Vector to "capacity"
+ **********************************************/
+template <class T>
+Vector <T> :: Vector(int capacity) throw (const char *)
+{
+   assert(Capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (Capacity == 0)
+  {
+    this->Capacity = this->Size = 0;
+    this->vector = 0x00000000;
+  return; 
+  }
+
+   // attempt to allocate
+         try
+         {
+             vector = new T[capacity];
+			 
+         }
+        catch (std::bad_alloc)
+         {
+		  //problem for test 1
+           throw "ERROR: Unable to allocate buffer";
+		   
+			 
+         }
+
+
+          // copy over the stuff
+          this->Capacity = capacity;
+          this->Size = 0;
+		   
+}
+
+/*******************************************
+ * Vector:: COPY CONSTRUCTOR
+ *******************************************/
+template <class T>
+Vector <T> :: Vector(const Vector <T> & rhs) throw (const char *)
+{
+  assert(rhs.Capacity >= 0);
+
+   // do nothing if there is nothing to do
+   if (rhs.Capacity == 0)
+   {
+      Capacity = Size = 0;
+      vector = 0x00000000;
+      return;
+   }
+
+   // attempt to allocate
+       try
+       {
+          vector = new T[rhs.Capacity];
+       }
+       catch (std::bad_alloc)
+       {
+          throw "ERROR: Unable to allocate buffer";
+       }
+
+       // copy over the stuff
+       assert(rhs.Size >= 0 && rhs.Size <= rhs.Capacity);
+       Capacity = rhs.Capacity;
+       Size = rhs.Size;
+       for (int i = 0; i < Size; i++)
+          vector[i] = rhs.vector[i];
+}
+
+
+
+/***************************************************
+ * Vector :: push back
+ * Insert an item on the end of the Vector
+ **************************************************/
+template <class T>
+void Vector <T> :: push_back(const T & t) throw (const char *)
+{
+  try
+{
+if (Capacity==0 || Capacity ==Size)
+{
+if (Capacity==0)
+Capacity=1;
+else
+Capacity *=2;
+T *temp = new T[Capacity];
+
+int index=0;
+VectorIterator<T> it;
+for (VectorIterator <T> it = this->begin(); it != this->end(); ++it)
+{
+temp[index++]= *it;
+}
+vector=temp;
+}
+}
+catch (std::bad_alloc)
+{
+throw "ERROR: Unable to allocate buffer\
+";
+}
+vector[Size++]=t;
+   
+}
+
+#endif
+vertex.h0000600003530400007650000001656512742406262012376 0ustar  cs235s3g5student/***********************************************************************
+ * Component:
+ *    Week 13, Vertex
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    A vertex class useful for a graph
+ ************************************************************************/
+
+#ifndef VERTEX_H
+#define VERTEX_H
+
+#include <iostream>
+#include <string>
+#include <cctype>
+#include <cassert>
+using std::string;
+
+/********************************************************
+ * VERTEX
+ * A generic Vertex class serving as a base class
+ *******************************************************/
+class Vertex
+{
+  public:
+   // constructors (With validation)
+   Vertex() : i(0)          {             }
+   Vertex(int index) : i(0) { set(index); }
+   Vertex(const Vertex & v) { i = v.i;    }
+ 
+   // set (the validation part)
+   void set(int index) { if (index >= 0 && index < getMax()) this->i = index; }
+
+   // handle max
+   int getMax() const   { return max;                       }
+   void setMax(int max) { assert(max > 0); this->max = max; }            
+   
+   // I/O
+   friend std::ostream & operator << (std::ostream & out, const Vertex & rhs);
+   friend std::istream & operator >> (std::istream & in,        Vertex & rhs);
+
+   virtual string getText() const         { return string("ERROR");       }
+   virtual bool setText(const string & s) { assert(false); return false;  }
+   
+   // get a scalar value
+   int index() const { return i; }
+   
+   // operators so we can use with an associative container
+   bool operator >  (const Vertex & rhs) const {return index() >  rhs.index();}
+   bool operator >= (const Vertex & rhs) const {return index() >= rhs.index();}
+   bool operator <  (const Vertex & rhs) const {return index() <  rhs.index();}
+   bool operator <= (const Vertex & rhs) const {return index() <= rhs.index();}
+   bool operator == (const Vertex & rhs) const {return index() == rhs.index();}
+   bool operator != (const Vertex & rhs) const {return index() != rhs.index();}
+
+   Vertex & operator = (const Vertex & rhs) { i = rhs.i; return *this; }
+   
+  protected:
+   int i;
+   static int max;
+};
+
+/**************************************************
+ * VERTEX : display
+ * Display a vertex on the screen: 0,0 -> "a1"
+ **************************************************/
+inline std::ostream & operator << (std::ostream & out, const Vertex & rhs)
+{
+   out << rhs.getText();
+   return out;
+}
+
+/***************************************************
+ * VERTEX : input
+ * Accept a vertex from the keyboard or any other input stream
+ **************************************************/
+inline std::istream & operator >> (std::istream & in, Vertex & rhs)
+{
+   // accept the input from the keyboard
+   string s;
+   in >> s;
+
+   // if we can set the text, good. Otherwise, set the fail bit!
+   if (!rhs.setText(s))
+      in.setstate(std::ios_base::failbit);
+
+   return in;
+}
+
+
+/****************************************************
+ * LETTERS  VERTEX  
+ * A vertex that can be one of many single-letter values
+ ***************************************************/
+class LVertex : public Vertex
+{
+public:
+   // return the text version of the index: 0 --> A
+   string getText() const
+   {
+      string s;
+      s += (char)(i + 'A');
+      return s;
+   }
+
+   // set an index based on the text:  A --> 0
+   bool setText(const string & s)
+   {
+      int tmp = toupper(s[0]) - 'A';
+      if (tmp >= 0 && tmp < getMax())
+      {
+         i = tmp;
+         return true;
+      }
+      else
+         return false;
+   }
+};
+
+#define NUM_CLASS 28
+
+/****************************************************
+ * COURSE  VERTEX  
+ * A vertex that consists of class names
+ ***************************************************/
+class CourseVertex : public Vertex
+{
+public:
+   CourseVertex()        : Vertex() { max = NUM_CLASS;                }
+   CourseVertex(const Vertex & v)   { max = NUM_CLASS; i = v.index(); }
+   CourseVertex(int num) : Vertex() { set(num);                       }
+   
+   // return the text version of the index: 0 --> CS124
+   string getText() const          { return nameFromIndex(i);        }
+
+   // set an index based on the text:  CS124 --> 0
+   bool setText(const string & s)
+   {
+      for (int i = 0; i < NUM_CLASS; i++)
+         if (s == nameFromIndex(i))
+         {
+            this->i = i;
+            return true;
+         }
+      return false;
+   }
+private:
+   // because this is a bit non-trivial, we need a separate function for this
+   string & nameFromIndex(int i) const
+   {
+      // all the classes in the sequence
+      static string classes[] =
+         {
+            string("CS124"),   string("CS165"),
+      
+            string("CS213"),   string("CS235"),   string("CS237"),
+            string("CS238"),   string("CS246"),
+
+            string("CS306"),   string("CS308"),   string("CS312"), 
+            string("CS313"),   string("CS345"),   string("CS361"),
+            string("CS364"),   string("CS371"),   string("CS398"),
+
+            string("CS416"),    string("CS432"),  string("CS450"),
+            string("CS460"),    string("CS470"),  string("CS480"),
+            string("CS499"),
+
+            string("CIT225"),
+            
+            string("ECEN160"),
+            string("ECEN260"),
+            string("ECEN324"), string("ECEN361")
+         };
+      assert(i >= 0 && i < NUM_CLASS);
+      assert(sizeof(classes) / sizeof(classes[0]) == NUM_CLASS);
+      return classes[i];
+   }
+};
+
+/***********************************************
+ * COORDIANTES VERTEX
+ * Verticies that are identified by coordinates on a grid
+ ***********************************************/
+class CVertex : public Vertex
+{
+public:
+   CVertex()                    : Vertex() {                }
+   CVertex(int col, int row)    : Vertex() { set(col, row); }
+   CVertex(const CVertex & rhs) : Vertex() { i = rhs.i;     }
+   CVertex(const  Vertex & rhs) : Vertex() { i = rhs.index();     }
+
+   // set a given vertex
+   bool set(int col, int row)
+   {
+      if (col >= 0 && col < getMaxCol() &&
+          row >= 0 && row < getMaxRow())
+      {
+         i = row * getMaxCol() + col;
+         return true;
+      }
+      else
+         return false;      
+   }
+   
+   
+   // return the text version of the index: (1,3) --> b4
+   string getText() const
+   {
+      string s;
+      // column is letter a .. z (or whatever)
+      // row is number 1 ... 100 (or whatever)
+      s += (char)(getCol() + 'a');
+      if (getRow() < 9)
+         s += (char)(getRow() + '1');
+      else
+      {
+         assert((getRow() + 1) / 10 >= 0 && (getRow() + 1) / 10 <= 9);
+         assert((getRow() + 1) % 10 >= 0 && (getRow() + 1) % 10 <= 9);         
+         s += (char)((getRow() + 1) / 10 + '0');
+         s += (char)((getRow() + 1) % 10 + '0');
+      }
+      return s;
+   }
+   
+   // set an index based on the text: b4 --> (1,3)
+   bool setText(const string & s)
+   {
+      if (s.size() == 2)
+         return set(s[0] - 'a', s[1] - '1');
+      else
+         return set(s[0] - 'a', (s[1] - '0') * 10 + (s[2] - '0') - 1);
+   }
+
+   // get the column and row from the current index
+   int getRow()    const { return i / getMaxCol();        }
+   int getCol()    const { return i % getMaxCol();        }
+   int getMaxCol() const { return maxCol;                 }
+   int getMaxRow() const { return getMax() / getMaxCol(); }
+
+   // set the max row
+   void setMax(int col, int row)
+   {
+      assert(col > 0 && row > 0 && col < 26 && row < 100);
+      maxCol = col;
+      max    = col * row;
+   }
+
+private:
+   static int maxCol;
+};
+
+
+#endif // VERTEX_H
+graph.cpp0000600003530400007650000000002212741525661012476 0ustar  cs235s3g5student#include "graph.h"maze.cpp0000600003530400007650000001152212743435106012334 0ustar  cs235s3g5student/***********************************************************************
+ * Component:
+ *    Week 13, Maze
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    Draw and solve a maze
+ ************************************************************************/
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cassert>
+#include "maze.h"
+#include "vertex.h"
+#include "vector.h"
+#include "set.h"
+#include "graph.h"
+using namespace std;
+
+void drawMazeRow(/*const*/ Graph & g, int row, Set <CVertex> & s);
+void drawMazeColumn(/*const*/ Graph & g, int row, const Set <CVertex> & s);
+
+/******************************************
+ * SOLVE MAZE
+ * Read a maze from the file, display it,
+ * then solve it
+ *****************************************/
+void solveMaze()
+{
+   // your code here
+   
+   
+   //Get input from the user
+	 string fileName; 
+	
+	//prompt user 
+	cout <<  "What is the filename?" << endl; 
+	cin >> fileName; 
+
+	//read the maze
+	 Graph g1(readMaze(fileName.c_str()));	
+	
+	
+	//draw the maze
+	//void drawMaze(const Graph & g, const Vector <Vertex> & path);
+	 //drawMaze(g1, vector & input)
+	
+	//solve the puzzle	
+	
+	cout << "Press any key to solve the maze" << endl; 
+	system("read");
+	
+	//determine the maze height and width and set it
+	//read it from the file name? 
+	//read it from the graph
+	//read the maze->Graph g1(readMaze(fileName.c_str()));	
+	
+	//call find path
+	
+	//read the maze again
+	
+	
+	
+	
+}
+
+/************************************************
+ * DRAW MAZE
+ * Draw a given maze represented by the graph 'g'
+ * on the screen using ASCII-art. There are two parameters:
+ *    g     - the graph containing the maze
+ *    path  - the path from the upper left corner to the lower right
+ ***********************************************/
+void drawMaze(/*const*/ Graph & g, const Vector <Vertex> & path)
+{
+   CVertex v;
+
+
+
+
+   // copy everything into a set
+   Set <CVertex> s;
+   for (int i = 0; i < path.size(); i++)
+   {Vertex temp = path[i];
+    // s.insert((CVertex)path(i));
+s.insert((CVertex)temp);}
+   // draw the top border
+   cout << "+  ";
+   for (int c = 1; c < v.getMaxCol(); c++)
+      cout << "+--";
+   cout << "+\n";
+
+   // draw a horizontal row
+   for (int row = 0; row < v.getMaxRow() - 1; row++)
+   {
+      drawMazeRow(g, row, s);
+      drawMazeColumn(g, row, s);
+   }
+
+   // draw the last row
+   drawMazeRow(g, v.getMaxRow() - 1, s);
+
+   // draw the bottom border
+   for (int c = 0; c < v.getMaxCol() - 1; c++)
+      cout << "+--";
+   cout << "+  +\n";
+}
+
+/*********************************************
+ * READ MAZE
+ * Read a maze from the file
+ ********************************************/
+Graph readMaze(const char * fileName)
+{
+   // attempt to open the file
+   ifstream fin (fileName);
+   if (fin.fail())
+   {
+      cout << "ERROR: Unable to open file " << fileName << endl;
+      return Graph(1);
+   }
+
+   // read the size from the beginning of the maze
+   int numCol;
+   int numRow;
+   fin >> numCol >> numRow;
+   CVertex vFrom;
+   CVertex vTo;
+   vFrom.setMax(numCol, numRow);
+
+   // now read all the items and put them into the Graph
+   Graph g(vFrom.getMax());
+   while (fin >> vFrom >> vTo)
+      g.add(vFrom, vTo);
+
+   // all done!
+   fin.close();
+   return g;
+
+}
+
+/**********************************************
+ * DRAW MAZE ROW
+ * Draw all the horizontal tunnels on a given row
+ *********************************************/
+void drawMazeRow(/*const*/ Graph & g, int row, Set <CVertex> & s)
+{
+   const char * space = NULL;
+   
+   CVertex vFrom;
+   CVertex vTo;
+   assert(g.size() == vFrom.getMaxCol() * vFrom.getMaxRow());
+
+   // they all start with a #
+   cout << "|";
+
+   // for every column in the row
+   for (int col = 1; col < vFrom.getMaxCol(); col++)
+   {
+      // set the position
+      vFrom.set(col, row);
+      vTo.set(col - 1, row);
+      space = (s.end() == s.find(vTo) ? "  " : "##");
+      
+      // draw
+      if (g.isEdge(vFrom, vTo) || g.isEdge(vTo, vFrom))
+         cout << space << ' ';
+      else
+         cout << space << '|';
+   }
+
+   // draw the end of row marker
+   vTo.set( vFrom.getMaxCol() - 1, row);
+   space = (s.end() == s.find(vTo) ? "  " : "##");
+   cout << space << "|\n";
+}
+
+/**********************************************
+ * DRAW MAZE COLUMN
+ * Draw all the vertical tunnels on a given row
+ *********************************************/
+void drawMazeColumn(/*const*/ Graph & g, int row, const Set <CVertex> & s)
+{
+   CVertex vFrom;
+   CVertex vTo;
+   assert(g.size() == vFrom.getMaxCol() * vFrom.getMaxRow());
+
+   // they all start with a #
+   cout << "+";
+
+   // for every column in the row
+   for (int col = 0; col < vFrom.getMaxCol(); col++)
+   {
+      // set the position
+      vFrom.set(col, row);
+      vTo.set(col, row + 1);
+
+      // draw
+      if (g.isEdge(vFrom, vTo) || g.isEdge(vTo, vFrom))
+         cout << "  +";
+      else
+         cout << "--+";
+   }
+
+   // draw the end of row marker
+   cout << endl;
+}
+
+
+
+week13.cpp0000600003530400007650000001543712743436766012525 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 13, Graph
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise the Graph class.  When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>      // for CIN and COUT
+#include <fstream>       // for IFSTREAM
+#include <string>        // for STRING
+#include "graph.h"       // for Graph class which should be in graph.h
+#include "vertex.h"      // for Vertex, LVertex, and CVertex
+#include "maze.h"
+using namespace std;
+
+int Vertex::max = 10;
+
+// prototypes for our four test functions
+void testSimple();
+void testAdd();
+void testQuery();
+void testFindAll();
+
+// To get your program to compile, you might need to comment out a few
+// of these. The idea is to help you avoid too many compile errors at once.
+// I suggest first commenting out all of these tests, then try to use only
+// TEST1.  Then, when TEST1 works, try TEST2 and so on.
+#define TEST1   // for testSimple()
+#define TEST2   // for testAdd()
+#define TEST3   // for testQuery()
+#define TEST4   // for testFindAll()
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu
+   cout << "Select the test you want to run:\n";
+   cout << "\t1. Just create and destroy a graph\n";
+   cout << "\t2. The above plus add a few entries\n";
+   cout << "\t3. Determine if two verticies are connected\n";
+   cout << "\t4. Find all the verticies connected to a given vertex\n";
+   cout << "\ta. Maze\n";
+
+   // select
+   char choice;
+   cout << "> ";
+   cin  >> choice;
+   switch (choice)
+   {
+      case 'a':
+         solveMaze();
+         break;
+      case '1':
+         testSimple();
+         cout << "Test 1 complete\n";
+         break;
+      case '2':
+         testAdd();
+         cout << "Test 2 complete\n";
+         break;
+      case '3':
+         testQuery();
+         cout << "Test 3 complete\n";
+         break;
+		 case '4':
+         testFindAll();
+         cout << "Test 4 complete\n";
+         break;
+      default:
+         cout << "Unrecognized command, exiting...\n";
+   }
+
+   return 0;
+}
+
+/*******************************************
+ * TEST SIMPLE
+ * Very simple test for a Graph: create and destroy
+ ******************************************/
+void testSimple()
+{
+#ifdef TEST1
+   try
+   {
+      // Test 1.a: a graph of 10
+      cout << "Create a graph of 10 verticies\n";
+      Graph g1(10);
+      cout << "\tSize: " << g1.size() << endl;
+
+      // Test 1.b: a graph of 20
+      cout << "Create a graph of 20 verticies\n";
+      Graph g2(20);
+      cout << "\tSize: " << g2.size() << endl;
+
+      // Test 1.c: Copy constructor
+      cout << "Create a graph using the copy constructor\n";
+      Graph g3(g2);
+      cout << "\tSize: " << g3.size() << endl;
+
+      // Test 1.d: Assignment operator
+      cout << "Copy a graph using the assignment operator\n";
+      Graph g4(20);
+      g4 = g2;
+      cout << "\tSize: " << g4.size() << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif //TEST1
+}
+
+/*******************************************
+ * TEST ADD
+ * Add a few elements to our Graph
+ *****************************************/
+void testAdd()
+{
+#ifdef TEST2
+   try
+   {
+      // create a graph
+      cout << "Create a graph of 5 verticies\n";
+      Graph g(5);
+      LVertex v1;
+      LVertex v2;
+      v1.setMax(5);
+
+      // A --> B
+      cout << "\tA --> B\n";
+      v1.setText(string("A"));
+      v2.setText(string("B"));
+      g.add(v1, v2);
+
+      // B --> C
+      cout << "\tB --> C\n";
+      v1.setText(string("B"));
+      v2.setText(string("C"));
+      g.add(v1, v2);
+
+      // C --> A
+      cout << "\tC --> A\n";
+      v1.setText(string("C"));
+      v2.setText(string("A"));
+      g.add(v1, v2);
+
+      //  D --> A
+      //  D --> B
+      //  D --> C
+      //  D --> D
+      cout << "\tD --> {A, B, C, D}\n";
+      v1.setText(string("D"));
+      Set <Vertex> s;
+      v2.setText(string("A"));
+      s.insert(v2);
+      v2.setText(string("B"));
+      s.insert(v2);
+      v2.setText(string("C"));
+      s.insert(v2);
+      v2.setText(string("D"));
+      s.insert(v2);
+      g.add(v1, s);
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST2   
+}
+
+int CVertex::maxCol = 0;
+
+/*******************************************
+ * TEST Query
+ * Determine if two verticies are connected
+ * in a given graph
+ *******************************************/
+void testQuery()
+{
+#ifdef TEST3
+   try
+   {
+      // read the verticies from a file
+      Graph g1(readMaze("/home/cs235/week13/maze5x5.txt"));
+
+      // copy the graph. Note that we need to ge the size from g1
+      Graph g2(g1.size());
+      g2 = g1;
+      g1.clear();
+
+      // need some variables
+      CVertex vFrom;
+      CVertex vTo;
+   
+      // allow the user to prompt for verticies  
+      cout << "Determine if a given edge exists in the graph\n";
+      cout << "> ";
+      while (cin >> vFrom >> vTo)
+         cout << '\t' << vFrom << " - " << vTo
+              << " is " << (g2.isEdge(vFrom, vTo) ? "" : "NOT ")
+              << "an edge\n"
+              << "> ";
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST3
+}
+
+
+/*******************************************
+ * TEST Find All
+ * Create a Graph and find all the edges
+ ******************************************/
+void testFindAll()
+{
+#ifdef TEST4
+   try
+   {
+      Graph g1(28);
+      CourseVertex vFrom;
+      CourseVertex vTo;
+
+      {
+         Graph g2(g1.size());
+
+         // read the class dependencies from a file
+         // CS124 CS165 CIT225 ECEN160 |
+         ifstream fin("/home/cs235/week13/cs.txt");
+         assert(fin.good());
+         while (fin >> vFrom)  // read the first vertex, the class
+         {
+            while (fin >> vTo) // keep reading until the "|" is encountered
+               g2.add(vFrom, vTo);
+            fin.clear();       // clear the error state which came from the "|"
+            fin.ignore();
+         }
+         fin.close();
+         g1 = g2;
+         g2.clear();
+      }
+      // g2 is destroyed
+
+      // prompt for the next class
+      cout << "For the given class, the prerequisites will be listed:\n";
+      cout << "> ";
+      while (cin >> vFrom)
+      {
+         Set <Vertex> s = g1.findEdges(vFrom);
+
+         for (SetConstIterator <Vertex> it = s.cbegin(); it != s.cend(); ++it)
+            cout << '\t' << (vTo = *it) << endl;
+      
+         cout << "> ";
+      }
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST4
+}
+
+makefile0000600003530400007650000000175212742617225012403 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 13, Graph
+#     Brother JonesL, CS235
+# Author:
+#     John Vehikite, Tiffany Gohnert
+# Summary:
+#     This program implements the graph data structure
+# Most difficult part:
+#     The maze portion of the assignment.
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: week13.o graph.o maze.o
+	g++ -o a.out week13.o graph.o maze.o -g
+	tar -cf week13.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      week13.o     : the driver program
+##############################################################
+week13.o: graph.h vertex.h week13.cpp
+	g++ -c week13.cpp -g
+
+graph.o: graph.h set.h vertex.h graph.cpp
+	g++ -c graph.cpp -g
+
+maze.o: maze.cpp maze.h vertex.h graph.h
+	g++ -c maze.cpp -g
