@@ -1,0 +1,1790 @@
+bnode.h0000600003530400007650000000555312735231763012147 0ustar  cs235s3g5student﻿#ifndef  NODE_H
+#define NODE_H
+#include <cassert>
+#include <iostream>
+
+using namespace std;
+
+//node class
+template <class T>
+class BinaryNode
+{
+
+public:
+	//default constructor
+	BinaryNode() : pRight(NULL), pLeft(NULL), pParent(NULL), data(0x00000000)/*, numItems(1)*/ {}
+
+	//non-default constructor 
+	BinaryNode(const T & t) : pRight(NULL), pLeft(NULL), pParent(NULL), data(t)/*, numItems(1)*/ {} /*throw (const char *)*/
+
+	void addLeft(const T & t)
+	{
+		BinaryNode <T> * tempBNode = new BinaryNode <T>(t);
+		this->pLeft = tempBNode;
+		tempBNode->pParent = this;
+		//numItems++;
+	}
+
+	void addLeft(BinaryNode <T> * bNode)
+	{
+		if (!bNode)
+		{
+			this->pLeft = NULL;
+			return;
+		}
+		this->pLeft = bNode;
+		bNode->pParent = this;
+		//numItems++;
+	}
+
+	void addRight(const T & t)
+	{
+		BinaryNode <T> * tempBNode = new BinaryNode <T>(t);
+		this->pRight = tempBNode;
+		tempBNode->pParent = this;
+		//numItems++;
+	}
+
+	void addRight(BinaryNode <T> * bNode)
+	{
+		if (!bNode)
+		{
+			this->pRight = NULL;
+			return;
+		}
+		this->pRight = bNode;
+		bNode->pParent = this;
+		//numItems++;
+	}
+
+	int size() const
+	{ 
+		if (this == NULL)
+			return 0;
+		else
+		{
+			int count = 1;
+			count += this->pLeft->size();
+			count += this->pRight->size();
+			return count;
+		}
+	}
+  
+	/*int countNodes(BinaryNode <T> * bNode)
+	{
+		unsigned count = 0;
+		if (bNode->pLeft)
+		{
+			countNodes(bNode->pLeft);
+			if (bNode->pRight)
+				countNodes(bNode->pRight);
+			count++;
+		}
+	}*/
+
+  // member variables 
+  BinaryNode <T> * pRight;
+  BinaryNode <T> * pLeft;
+  BinaryNode <T> * pParent;
+  T data;
+  //int numItems;
+};
+
+/*
+deleteBinaryTree(): Takes a BinaryNode as a parameter and 
+deletes all the children and itself. This is a recursive 
+function.
+*/
+template <class T>
+void deleteBinaryTree(BinaryNode <T> * &bNode)
+{
+	if (bNode->pLeft)
+	{
+		deleteBinaryTree(bNode->pLeft);
+		if (bNode->pRight)
+			deleteBinaryTree(bNode->pRight);
+		delete bNode;
+		bNode = NULL;
+	}
+}
+
+/*
+Insertion operator: Takes a constant BinaryNode * as a 
+parameter and displays the tree under the passed parameter. 
+This is a recursive function traversing the tree in infix 
+order. A single space will be displayed after every element.
+*/
+
+template <class T>
+ostream & operator << (ostream & out, BinaryNode <T> * rhs)
+{
+	// prints R, L, R, LL, LR, RL, RR... incorrect
+	/*if (rhs != NULL)
+	{
+		out << rhs->data << " ";
+		out << (rhs->pLeft);
+		out << (rhs->pRight);
+	}
+	return out;*/
+	
+	// Postorder
+	//if (rhs != NULL)
+	//{
+	//	out << (rhs->pLeft);
+	//	//out << rhs->data << " ";
+	//	out << (rhs->pRight);
+	//	out << rhs->data << " ";
+	//}
+	//return out;
+
+	// Inorder!! YAY!
+	if (rhs != NULL)
+	{
+		out << (rhs->pLeft);
+		out << rhs->data << " ";
+		out << (rhs->pRight);
+		//out << rhs->data << " ";
+	}
+	return out;
+}
+
+#endif
+bst.h0000600003530400007650000003325112735411145011636 0ustar  cs235s3g5student/***********************************************************************
+ * Component:
+ *    Week 09, Binary Search Tree (BST)
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This class represents a Binary Search Tree
+ ************************************************************************/
+
+#ifndef BST_H
+#define BST_H
+
+#include "bnode.h"    // for BinaryNode
+#include "stack.h"    // for Stack
+#include <algorithm>  // for swap
+
+ // forward declaration for the BST iterator
+template <class T>
+class BSTIterator;
+
+/*****************************************************************
+* BINARY SEARCH TREE
+* Create a Binary Search Tree
+*****************************************************************/
+template <class T>
+class BST
+{
+public:
+	// constructor
+	BST() : root(NULL) {};
+
+	// copy constructor
+	BST(const BST & rhs);
+
+	~BST();
+
+	int  size() const { return empty() ? 0 : root->size(); }   // BinaryNode class needs a size function
+
+
+	// determine if the tree is empty
+	bool empty() const
+	{
+		return (root == NULL);
+	}
+
+	// clear all the contests of the tree
+	void clear()
+	{
+		BinaryNode <T> * left = root->pLeft;
+		BinaryNode <T> * right = root->pRight;
+		if (root)
+		{
+			deleteBinaryTree(left);
+			deleteBinaryTree(right);
+			delete root;   // visit => delete node
+			root = NULL;
+		}
+	}
+
+	// overloaded assignment operator
+	BST & operator = (const BST & rhs) throw (const char *)
+	{
+		root = clone(rhs.root);
+		return *this;
+	}
+
+	// insert an item
+	void insert(const T & t) throw (const char *);
+
+	// remove an item
+	void remove(BSTIterator <T> & it);
+
+	// find a given item
+	BSTIterator <T> find(const T & t);
+
+	// the usual iterator stuff
+	BSTIterator <T> begin();
+	BSTIterator <T> end() { return BSTIterator <T>(NULL); }
+	BSTIterator <T> rbegin();
+	BSTIterator <T> rend() { return BSTIterator <T>(NULL); }
+
+	BinaryNode <T> * clone(BinaryNode <T> * ptr) const;
+	void inorder(BinaryNode<T> * node);
+	void AddToArray(BinaryNode <T> * add, T arr[], int i);
+	
+private:
+
+	BinaryNode <T> * root;
+};
+
+template<class T>
+BinaryNode <T> * BST<T>::clone(BinaryNode <T> * ptr) const
+{
+	if (ptr)
+	{
+		BinaryNode <T> *newnode = new BinaryNode <T> (ptr->data);
+		newnode->pLeft = clone(ptr->pLeft);
+		newnode->pRight = clone(ptr->pRight);
+		return newnode;
+	}
+	return NULL;
+}
+
+/*********************************************************
+* copy constructor
+**********************************************************/
+template <class T>
+BST<T>::BST(const BST &rhs)
+{
+	root = clone(rhs.root);
+}
+
+/*****************************************************
+* Destructor
+*******************************************************/
+template <class T>
+BST<T>::~BST()
+{
+	if (this->root != NULL)
+	{
+		deleteBinaryTree(this->root);
+	}
+}
+
+
+/*****************************************************
+* BST :: BEGIN
+* Return the first node (left-most) in a binary search tree
+****************************************************/
+template <class T>
+BSTIterator <T> BST <T> ::begin()
+{
+	Stack < BinaryNode <T> * > nodes;
+
+	nodes.push(NULL);
+	nodes.push(root);
+	while (nodes.top() != NULL && nodes.top()->pLeft)
+		nodes.push(nodes.top()->pLeft);
+
+	return nodes;
+}
+
+/*****************************************************
+* BST :: RBEGIN
+* Return the last node (right-most) in a binary search tree
+****************************************************/
+template <class T>
+BSTIterator <T> BST <T> ::rbegin()
+{
+	Stack < BinaryNode <T> * > nodes;
+
+	nodes.push(NULL);
+	nodes.push(root);
+	while (nodes.top() != NULL && nodes.top()->pRight)
+		nodes.push(nodes.top()->pRight);
+
+	return nodes;
+}
+
+/*****************************************************
+* BST :: INSERT
+* Insert a node at a given location in the tree
+****************************************************/
+template <class T>
+void BST <T> ::insert(const T & t) throw (const char *)
+{
+	/*BinaryNode <T> * temp = new BinaryNode <T> * ();
+	if (root == NULL) {
+		temp->data = t;
+		temp->pLeft = NULL;
+		temp->pRight = NULL;
+		root = temp;
+		return;
+	}
+	else
+	{
+		temp = root;
+		temp->pParent = 0;
+		bool found = false;
+		while (!found && temp != 0)
+		{
+			root->pParent = temp;
+			if (t < temp->data)
+				temp = temp->pLeft;
+			else if (temp->data < t)
+				temp = temp->pRight;
+			else
+				found = true;
+		}
+		if (!found)
+		{
+			temp = new BinaryNode <T>(t);
+			if (root->pParent == 0)
+				root = temp;
+			else if (t < root->pParent->data)
+				root->pParent->pLeft = temp;
+			else
+				root->pParent->pRight = temp;
+		}
+		else
+			cout << "Item already in the tree\n";*/
+	BinaryNode <T> * locptr = root;   // search pointer
+	BinaryNode <T> * parent = 0;        // pointer to parent of current node
+	bool found = false;     // indicates if item already in BST
+	while (!found && locptr != 0)
+	{
+		parent = locptr;
+		if (locptr->data > t)       // descend left
+			locptr = locptr->pLeft;
+		else if (t > locptr->data)  // descend right
+			locptr = locptr->pRight;
+		else                           // item found
+			found = true;
+	}
+	if (!found)
+	{                                 // construct node containing item
+		locptr = new BinaryNode <T> (t);
+		if (parent == 0)               // empty tree
+			root = locptr;
+		else if (parent->data > t)  // insert to left of parent
+			parent->pLeft = locptr;
+		else                           // insert to right of parent
+			parent->pRight = locptr;
+	}
+	else
+		cout << "Item already in the tree\n";
+}
+
+/*************************************************
+* BST :: REMOVE
+* Remove a given node as specified by the iterator
+************************************************/
+template <class T>
+void BST <T> ::remove(BSTIterator <T> & it)
+{
+	/*BinaryNode<T> * bnode = it.getNode();
+	BinaryNode<T> * subtree = bnode->pLeft;
+	if (subtree == 0)
+		subtree = bnode->pRight;
+	if (root->pParent == 0)
+		root = subtree;
+	else if (root->pParent->pLeft == bnode)
+		root->pParent->pLeft = subtree;
+	else
+		root->pParent->pRight = subtree;*/
+	//// get the pointer to node that will be deleted
+ //  BinaryNode<T> * x = it.getNode();
+ //  //parent node
+ //  BinaryNode<T> * parent;
+ //  
+ //  //x is leaf
+ //  
+ //  if (x->pLeft !=0 && x->pRight !=0)
+ //  {
+ //   BinaryNode<T> * xSucc = x->pRight; 
+	//parent=x; 
+	//while (xSucc->pLeft !=0)
+	//{
+	//parent = xSucc; 
+	//xSucc = xSucc->pLeft; 
+	//}
+	//
+	////move xScucc to x and change x to point 
+	////to successor, which will be removed
+	//
+	//x->data = xSucc->data; 
+	//x=xSucc; 
+	//
+ //  }
+ //  
+ //  
+ //  // x has one child
+ //  
+ //  BinaryNode<T> * subtree; 
+ //  
+ //  subtree=x->pLeft; 
+ //  if(subtree==0)
+ //  subtree=x->pRight; 
+ //  if(parent==0)
+ //  root=subtree; 
+ //  else if (parent->pLeft==x)
+ //  parent->pRight=subtree; 
+ //  else
+ //  parent->pRight=subtree; 
+ //   
+ //  
+ //  //x has two children
+ //  
+ // // delete the item 
+ // delete x;
+	BinaryNode<T> * bnode = it.getNode();
+	BinaryNode<T> * parent = bnode->pParent;
+	if (bnode->pLeft != 0 && bnode->pRight != 0)
+	{                                // node has 2 children
+									 // Find bnode's inorder successor and its parent
+		BinaryNode<T> * bnodeSucc = bnode->pRight;
+		parent = bnode;
+		while (bnodeSucc->pLeft != 0)       // descend left
+		{
+			parent = bnodeSucc;
+			bnodeSucc = bnodeSucc->pLeft;
+		}
+
+		// Move contents of bnodeSucc to bnode and change bnode 
+		// to point to successor, which will be removed.
+		*it = bnodeSucc->data;
+		bnode = bnodeSucc;
+	} // end if node has 2 children
+
+	  // Now proceed with case where node has 0 or 2 child
+	BinaryNode<T> * subtree = bnode->pLeft;             // pointer to a subtree of bnode
+	if (subtree == 0)
+		subtree = bnode->pRight;
+	if (parent == 0)                  // root being removed
+		root = subtree;
+	else if (parent->pLeft == bnode)       // pLeft child of parent
+		parent->pLeft = subtree;
+	else                              // pRight child of parent
+		parent->pRight = subtree;
+	delete bnode;
+	//bnode = NULL;
+}
+
+/****************************************************
+* BST :: FIND
+* Return the node corresponding to a given value
+****************************************************/
+template <class T>
+BSTIterator <T> BST <T> ::find(const T & t)
+{
+
+//Stack < BinaryNode <T> * > tempPointer;
+BinaryNode <T> * temp = root;
+	temp = root;
+		temp->pParent = 0;
+		bool found = false;
+		
+		//search 
+		while (!found && temp != 0)
+		{
+			root->pParent = temp;
+			if (t < temp->data)
+				temp = temp->pLeft;
+			else if (temp->data < t)
+				temp = temp->pRight;
+			else
+				found = true;
+		}
+		//If no element is found, the end() iterator will be returned.
+		if (!found)
+		{
+		
+		 BST <char> tree;
+		 
+			return tree.end();
+		}
+		
+		//return item found
+		else			
+			return temp; 
+	
+}
+
+
+/**********************************************************
+* BINARY SEARCH TREE ITERATOR
+* Forward and reverse iterator through a BST
+*********************************************************/
+template <class T>
+class BSTIterator
+{
+public:
+	// constructors
+	BSTIterator(BinaryNode <T> * p = NULL) { nodes.push(p); }
+	BSTIterator(Stack <BinaryNode <T> *> & s) { nodes = s; }
+	BSTIterator(const BSTIterator <T> & rhs) { nodes = rhs.nodes; }
+
+	// assignment
+	BSTIterator <T> & operator = (const BSTIterator <T> & rhs)
+	{
+		// need an assignment operator for the Stack class.
+		nodes = rhs.nodes;
+		return *this;
+	}
+
+	// compare
+	bool operator == (const BSTIterator <T> & rhs) const
+	{
+		// only need to compare the leaf node 
+		return rhs.nodes.const_top() == nodes.const_top();
+	}
+	bool operator != (const BSTIterator <T> & rhs) const
+	{
+		// only need to compare the leaf node 
+		return rhs.nodes.const_top() != nodes.const_top();
+	}
+
+	// de-reference. Cannot change because it will invalidate the BST
+	T & operator * ()
+	{
+		return nodes.top()->data;
+	}
+
+	// iterators
+	BSTIterator <T> & operator ++ ();
+	BSTIterator <T>   operator ++ (int postfix)
+	{
+		BSTIterator <T> itReturn = *this;
+		++(*this);
+		return itReturn;
+	}
+	BSTIterator <T> & operator -- ();
+	BSTIterator <T>   operator -- (int postfix)
+	{
+		BSTIterator <T> itReturn = *this;
+		--(*this);
+		return itReturn;
+	}
+
+	// must give friend status to remove so it can call getNode() from it
+	friend void BST <T> ::remove(BSTIterator <T> & it);
+
+private:
+
+	// get the node pointer
+	BinaryNode <T> * getNode() { return nodes.top(); }
+
+	// the stack of nodes
+	Stack < BinaryNode <T> * > nodes;
+};
+
+
+/**************************************************
+* BST ITERATOR :: INCREMENT PREFIX
+* advance by one
+*************************************************/
+template <class T>
+BSTIterator <T> & BSTIterator <T> :: operator ++ ()
+{
+	// do nothing if we have nothing
+	if (nodes.top() == NULL)
+		return *this;
+
+	// if there is a right node, take it
+	if (nodes.top()->pRight != NULL)
+	{
+		nodes.push(nodes.top()->pRight);
+
+		// there might be more left-most children
+		while (nodes.top()->pLeft)
+			nodes.push(nodes.top()->pLeft);
+		return *this;
+	}
+
+	// there are no right children, the left are done
+	assert(nodes.top()->pRight == NULL);
+	BinaryNode <T> * pSave = nodes.top();
+	nodes.pop();
+
+	// if the parent is the NULL, we are done!
+	if (NULL == nodes.top())
+		return *this;
+
+	// if we are the left-child, got to the parent.
+	if (pSave == nodes.top()->pLeft)
+		return *this;
+
+	// we are the right-child, go up as long as we are the right child!
+	while (nodes.top() != NULL && pSave == nodes.top()->pRight)
+	{
+		pSave = nodes.top();
+		nodes.pop();
+	}
+
+	return *this;
+}
+
+/**************************************************
+* BST ITERATOR :: DECREMENT PREFIX
+* advance by one
+*************************************************/
+template <class T>
+BSTIterator <T> & BSTIterator <T> :: operator -- ()
+{
+	// do nothing if we have nothing
+	if (nodes.top() == NULL)
+		return *this;
+
+	// if there is a left node, take it
+	if (nodes.top()->pLeft != NULL)
+	{
+		nodes.push(nodes.top()->pLeft);
+
+		// there might be more right-most children
+		while (nodes.top()->pRight)
+			nodes.push(nodes.top()->pRight);
+		return *this;
+	}
+
+	// there are no left children, the right are done
+	assert(nodes.top()->pLeft == NULL);
+	BinaryNode <T> * pSave = nodes.top();
+	nodes.pop();
+
+	// if the parent is the NULL, we are done!
+	if (NULL == nodes.top())
+		return *this;
+
+	// if we are the right-child, got to the parent.
+	if (pSave == nodes.top()->pRight)
+		return *this;
+
+	// we are the left-child, go up as long as we are the left child!
+	while (nodes.top() != NULL && pSave == nodes.top()->pLeft)
+	{
+		pSave = nodes.top();
+		nodes.pop();
+	}
+
+	return *this;
+}
+
+/****************************************************
+* BST :: inorder
+* put tree in inorder
+****************************************************/
+template <class T>
+void BST <T> ::inorder(BinaryNode<T> * node) {
+
+	node = root;
+	if (node) {
+		inorder(node->pLeft);
+		cout << node->data << "IT'S WORKING!!!!! ";
+		inorder(node->pRight);
+	}
+}
+
+/****************************************************
+* BST :: AddToArray
+* put tree into array
+****************************************************/
+template <class T>
+void BST <T> ::AddToArray(BinaryNode <T> * add, T arr[], int i)
+{
+	BinaryNode <T> * temp = root;
+	temp = root;
+
+	//null check the node
+	if (temp == NULL)
+	{
+		//I think the problem is here
+		//return i;
+	}
+
+	//add to array
+	arr[i] = temp->data;
+	i++;
+
+	//null check here 
+	if (temp->pLeft != NULL)
+	{
+		AddToArray(temp->pLeft, arr, i);
+	}
+	if (temp->pRight != NULL)
+		AddToArray(temp->pRight, arr, i);
+
+	//add to array
+	arr[i] = temp->data;
+	i++;
+
+}
+
+
+#endif // BST_HsortBinary.h0000600003530400007650000000174212736113767013214 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 11, Sort Binary
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This program will implement the Binary Tree Sort
+ ************************************************************************/
+
+#ifndef SORT_BINARY_H
+#define SORT_BINARY_H
+#include "bst.h"
+#include <stdio.h>     
+#include <stdlib.h>     
+
+
+
+ /*****************************************************
+ * SORT BINARY
+ * Perform the binary tree sort
+ ****************************************************/
+template <class T>
+void sortBinary(T array[], int num)
+{
+
+	BinaryNode<T> * n = NULL;
+
+	//insert array into tree;
+	//BST< BinaryNode <T> * > bst;
+	BST <T> bst;
+
+	for (int i = 0; i < num; i++)
+	{
+		bst.insert(array[i]);
+	}
+
+	//sort the tree
+
+	bst.inorder(n);
+
+
+	//copy the elements from the tree back into the input array.
+
+	bst.AddToArray(n, array, num);
+
+
+}
+
+
+
+
+
+
+
+
+#endif // SORT_BINARY_H
+sortBubble.h0000600003530400007650000000374012736113767013163 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 11, Sort Bubble
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This program will implement the Bubble Sort
+ ************************************************************************/
+
+#ifndef SORT_BUBBLE_H
+#define SORT_BUBBLE_H
+
+/*****************************************************
+ * SORT BUBBLE
+ * Perform the bubble sort
+ * Code adapted from CS 124 text Procedural Programming
+ * in C++
+ ****************************************************/
+template <class T>
+void sortBubble(T array[], int numElements)
+{
+	int numCompares = 0;   // number of comparisions is initially zero
+
+						   // If we make it all the way through the outer loop represented by
+						   // iSpot without performing a swap, then we are sorted.  This variable
+						   // keeps track of that.  It is initially true to force us to go through
+						   // the inner looop (iCheck) at least once.
+	bool switched = true;
+
+	// The outer loop checks each spot in the array and looks for the
+	// item to go there.
+	for (int iSpot = numElements - 1; iSpot >= 1 && switched; iSpot--)
+
+		// The inner loop brings the correct item to the spot.  This is done
+		// by "bubbling" the item to the correct location.
+		for (int iCheck = 0, switched = false; iCheck <= iSpot - 1; iCheck++)
+		{
+			numCompares++;      // each time we are going to compare, add one
+
+								// If a pair is out of order, swap them.
+			if (array[iCheck] > array[iCheck + 1])
+			{
+				// swap involves a temp variable because a variable can only
+				// hold one item at a time.
+				T temp = array[iCheck];
+				array[iCheck] = array[iCheck + 1];
+				array[iCheck + 1] = temp;
+
+				// once a swap has occured, set switched to true so we know
+				// we need to go through the outer loop again.
+				switched = true;
+			}
+		}
+
+	//return numCompares;
+}
+
+
+
+#endif // SORT_BUBBLE_H
+sortHeap.h0000600003530400007650000000433112736113767012642 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 11, Sort Heap
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This program will implement the Heap Sort
+ ************************************************************************/
+
+#ifndef SORT_HEAP_H
+#define SORT_HEAP_H
+#include <iostream>
+using namespace std;
+/*****************************************************
+ * SORT HEAP
+ * Perform the heap sort
+ ****************************************************/
+template <class T>
+ class Heap
+ {
+ public:
+ //default
+ Heap(){}; 
+ //non-default
+ Heap(const T & rhs) { *this = rhs; }
+ //destructor
+ //~Heap();   
+ //Retrieves the maximum element in the heap.
+ void getMax(){}
+ /*Removes the maximum element in the heap. 
+ This will serve to change the heap, yielding
+ a new maximum element.*/
+ void deleteMax(){myArray[1] = myArray[mySize]; mySize--;}
+ // Turns a given array into a heap
+ void heapify(T arr[], int n, int i)
+{
+    int largest = i;  // Initialize largest as root
+    int l = 2*i + 1;  // left = 2*i + 1
+    int r = 2*i + 2;  // right = 2*i + 2
+ 
+    // If left child is larger than root
+    if (l < n && arr[l] > arr[largest])
+        largest = l;
+ 
+    // If right child is larger than largest so far
+    if (r < n && arr[r] > arr[largest])
+        largest = r;
+ 
+    // If largest is not root
+    if (largest != i)
+    {
+        swap(arr[i], arr[largest]);
+ 
+        // Recursively heapify the affected sub-tree
+        heapify(arr, n, largest);
+    }
+}
+ //This function turns the array from a heap into a sorted list.
+ void sort(T arr[], int n)
+{
+    // Build heap (rearrange array)
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(arr, n, i);
+ 
+    // One by one extract an element from heap
+    for (int i=n-1; i>=0; i--)
+    {
+        // Move current root to end
+        swap(arr[0], arr[i]);
+ 
+        // call max heapify on the reduced heap
+        heapify(arr, i, 0);
+    }
+}
+ //This method takes an index as a parameter and fixes the heap from that index down.
+ void percolateDown(){}
+ 
+
+ T myArray; 
+  T mySize;
+ 
+ }; 
+ 
+ template <class T>
+void sortHeap(T array[], int num)
+{
+Heap <T>heap; 
+	heap.sort(array, num);
+}
+
+
+#endif // SORT_HEAP_H
+sortInsertion.h0000600003530400007650000000407512736113767013744 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 11, Sort Insertion
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This program will implement the Insertion Sort
+ ************************************************************************/
+
+#ifndef SORT_INSERTION_H
+#define SORT_INSERTION_H
+
+#include <cassert>
+
+/*****************************************************
+ * SORT INSERTION
+ * Perform the insertion sort
+ ****************************************************/
+template <class T>
+void sortInsertion(T array[], int num)
+{
+	// binary() from assign44.cpp
+	////set the bounds of the search space, initially the whole array
+	//int iFirst = 0;
+	//int iLast = num - 1;
+
+	//// continue until found or the search size is not zero
+	//while (iLast >= iFirst)
+	//{
+	//	int iMiddle = (iLast + iFirst) / 2;
+
+	//	// note that both the == and > count as one comparison
+	//	if (array[iMiddle] == search)
+	//		// SORT algorithm
+	//	else if (array[iMiddle] > search)
+	//		iLast = iMiddle - 1;
+	//	else
+	//		iFirst = iMiddle + 1;
+	//}
+	
+
+	// p. 729 of text (p. 746 in Adobe Reader)
+	for (int i = 1; i < num; i++)
+	{
+		T nextElement = array[i];
+		//array[0] = nextElement;
+		int j = i;
+		
+		while (array[j - 1] > nextElement)
+		{
+			array[j] = array[j - 1];
+			j--;
+		}
+
+		array[j] = nextElement;
+	}
+
+
+	// https://learn.hackerearth.com/tutorial/sorting-algorithm/67/binary-insertion-sort/
+	//T key;
+	//// BS indices
+	//int l, r, m, b = 0, e = num;
+
+	//for (int j = b + 1; j <= e; j++) {
+	//	key = array[j];
+
+	//	// BS indices, array range array[b ... e]
+	//	l = b - 1, r = j;
+
+	//	// locate an element array[m] > key (largest element smaller than key - floor value)
+	//	// equality is not considered to maintain stability
+	//	while (r - l > 1) {
+	//		m = l + (r - l) / 2;
+
+	//		(array[m] > key ? r : l) = m;
+	//	}
+
+	//	// Move all the elements [r+1 ... j] to right side by one step
+	//	m = j + 1;
+	//	while (--m > r)
+	//		array[m] = array[m - 1];
+
+	//	array[r] = key;
+	//}
+}
+
+
+#endif // SORT_INSERTION_H
+sortMerge.h0000600003530400007650000000315212736113766013023 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 11, Sort Merge
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This program will implement the Merge Sort
+ ************************************************************************/
+//electrician
+
+#ifndef SORT_MERGE_H
+#define SORT_MERGE_H
+#include <math.h>       /* floor */
+/*****************************************************
+ * SORT MERGE
+ * Perform the merge sort
+ ****************************************************/
+template <class T>
+ void merge(T* input, int p, int r)
+{
+    int mid = floor((p + r) / 2);
+    int i1 = 0;
+    int i2 = p;
+    int i3 = mid + 1;
+
+    // Temp array
+    T temp[r-p+1];
+
+    // Merge in sorted form the 2 arrays
+    while ( i2 <= mid && i3 <= r )
+        if ( input[i3] > input[i2] )
+            temp[i1++] = input[i2++];
+        else
+            temp[i1++] = input[i3++];
+
+    // Merge the remaining elements in left array
+    while ( i2 <= mid )
+        temp[i1++] = input[i2++];
+
+    // Merge the remaining elements in right array
+    while ( i3 <= r )
+        temp[i1++] = input[i3++];
+
+    // Move from temp array to master array
+    for ( int i = p; i <= r; i++ )
+        input[i] = temp[i-p];
+}
+template <class T>
+void merge_sort(T* input, int p, int r)
+{
+    if ( p < r )
+    {
+        int mid = floor((p + r) / 2);
+        merge_sort(input, p, mid);
+        merge_sort(input, mid + 1, r);
+        merge(input, p, r);
+    }
+}
+
+
+
+template <class T>
+void sortMerge(T array[], int num) {
+
+  
+  merge_sort(array, 0, num-1);
+
+ 
+
+}
+
+
+
+
+#endif // SORT_MERGE_H
+sortQuick.h0000600003530400007650000000234312736113766013041 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 11, Sort Quick
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This program will implement the Quick Sort
+ ************************************************************************/
+
+#ifndef SORT_QUICK_H
+#define SORT_QUICK_H
+/*****************************************************
+ * SORT QUICK
+ * Perform the quick sort
+ ****************************************************/
+
+ 
+ template <class T>
+  void swap(int i,int j, T *a){
+   T temp = a[i];
+   a[i] = a[j];
+   a[j] = temp;
+}
+
+ template <class T>
+ void quicksort(T *arr, int left, int right){
+   int min = (left+right)/2;
+
+   int i = left;
+   int j = right;
+   T pivot = arr[min];
+
+   while(left<j || i<right)
+   {
+      while(arr[i]<pivot)
+         i++;
+      while(arr[j]>pivot)
+         j--;     
+
+      if(i<=j){
+         swap(i,j,arr);
+         i++;
+         j--;
+      }
+      else{
+         if(left<j)
+           quicksort(arr, left, j);
+         if(i<right)
+            quicksort(arr,i,right);
+         return;
+      }
+   }
+}
+ 
+ template <class T>
+void sortQuick(T array[], int num)
+{	
+quicksort(array, 0, num-1);
+ }
+ 
+
+
+#endif // SORT_QUICK_H
+sortSelection.h0000600003530400007650000000161112736113766013707 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 11, Sort Select
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This program will implement the Selection Sort
+ ************************************************************************/
+
+#ifndef SORT_SELECTION_H
+#define SORT_SELECTION_H
+
+/*****************************************************
+ * SORT SELECTION
+ * Perform the selection sort
+ ****************************************************/
+template <class T>
+void sortSelection(T array[], int num)
+{
+	for (int i = 0; i < num; i++)
+	{
+		int smallPos = i;
+		T smallest = array[smallPos];
+		for (int j = i + 1; j < num; j++)
+		{
+			if (smallest > array[j])
+			{
+				smallPos = j;
+				smallest = array[smallPos];
+			}
+		}
+		array[smallPos] = array[i];
+		array[i] = smallest;
+	}
+}
+
+
+#endif // SORT_SELECTION_H
+sortValue.h0000600003530400007650000000501412735535242013033 0ustar  cs235s3g5student/***********************************************************************
+ * Component:
+ *    Week 11, Sort Value
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    The purpose of this data-type is to test sorting algorithms.
+ *    This data-type has several properties:
+ *     1.   It only defines the less-than operator, the only thing necessary
+ *          for a comparison sort
+ *     2.   It counts the number of times that a value is copied
+ *     3.   It counts the number of times the < operator was called
+ *     4.   The insertion operator is defined so you can display the results
+ ************************************************************************/
+
+#ifndef SORT_VALUE_H
+#define SORT_VALUE_H
+
+#include <iostream>  // for CIN
+#include <stdlib.h>  // for rand()
+
+/********************************************************
+ * SORT VALUE
+ ********************************************************/
+class SortValue
+{
+public:
+   // constructors
+   SortValue() : value(0) {}
+   SortValue(const SortValue & rhs) { *this = rhs; }
+
+   // comparision
+   bool operator > (const SortValue & rhs) const
+   {
+      compares++;
+      return value > rhs.value;
+   }
+     bool operator <(const SortValue & rhs) const
+   {
+      compares++;
+      return value < rhs.value;
+   }
+   
+    bool operator <=(const SortValue & rhs) const
+   {
+      compares++;
+      return value <= rhs.value;
+   }
+   
+   bool operator == (const SortValue & rhs) const
+   {
+      return value == rhs.value;
+   }
+
+   // assignment
+   SortValue & operator = (const SortValue & rhs)
+   {
+      assign++;
+      value = rhs.value;
+      return *this;
+   }
+   SortValue & operator = (int rhs)
+   {
+      assign++;
+      value = rhs;
+      return *this;
+   }
+
+   // fill with a random number
+   void random()
+   {
+      value = rand() % 1000000;
+   }
+   
+   // reset the counters
+   void reset()
+   {
+      assign   = 0;
+      compares = 0;
+   }
+
+   // display
+   friend std::ostream & operator << (std::ostream & out, const SortValue &rhs)
+   {
+      out << rhs.value;
+      return out;
+   }
+
+   // get the statistics
+   unsigned long getAssigns()  const { return assign;   }
+   unsigned long getCompares() const { return compares; }
+   
+private:
+   int value;                     // the value we will be sorting with
+   static unsigned long assign;   // # times the assigment operator was called
+   static unsigned long compares; // # times the > operator was called
+};
+
+unsigned long SortValue :: assign = 0;
+unsigned long SortValue :: compares = 0;
+
+#endif // SORT_VALUE_H
+stack.h0000600003530400007650000001354412735231763012164 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Lesson 02, Stack
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    This program will implement a stack
+ ************************************************************************/
+
+#ifndef STACK_H
+#define STACK_H
+
+#include <cassert>  // because I am paranoid
+
+/**************************************************
+ * STACK
+ * First-in-Last-out data structure
+ *************************************************/
+template <class T>
+class Stack
+{
+public:
+   // constructors and destructors
+   Stack() : data(NULL), capacity(0), num(0) {                               }
+   Stack(int capacity)         throw(const char *);
+   Stack(const Stack<T> & rhs) throw(const char *);;
+   ~Stack()                                  { if (!empty()) delete [] data; }
+
+   // assignment operator
+   Stack <T> & operator = (const Stack <T> & rhs) throw (const char *);
+   
+   // standard container interfaces
+   bool empty() const                        { return num == 0;              }
+   int  size () const                        { return num;                   }
+
+   // stack-specific interfaces
+   void pop()                  throw(const char *);
+   T &  top()                  throw(const char *);
+   const T & const_top() const throw(const char *);
+   void push(const T & t)      throw(const char *);
+  
+private:
+   void grow(int capacity = 0) throw(const char *);
+  
+   T * data;             // dynamically allocated data for the stack
+   int capacity;         // the size of the data array
+   int num;              // the number of items currently used in the array
+};
+
+/**********************************************************
+ * STACK :: copy constructor
+ *********************************************************/
+template <class T>
+Stack <T> :: Stack (int newCapacity) throw (const char *)
+{
+   // initially empty
+   data = NULL;
+   capacity = 0;
+   num = 0;
+
+   // allocate the buffer
+   assert(newCapacity >= 0);
+   grow(newCapacity);     // this could throw
+}
+
+/**********************************************************
+ * STACK :: copy constructor
+ *********************************************************/
+template <class T>
+Stack <T> :: Stack (const Stack <T> & rhs) throw (const char *)
+{
+   data = NULL;
+   capacity = 0;
+   num = 0;
+   *this = rhs;
+}
+
+/*********************************************************
+ * STACK :: assign
+ * Copy one stack onto another
+ ********************************************************/
+template <class T>
+Stack<T> & Stack <T> :: operator = (const Stack <T> & rhs) throw (const char *)
+{
+   assert(rhs.capacity >= 0);
+   assert(rhs.num      >= 0);
+   assert(rhs.num <= rhs.capacity);
+
+   // delete the old stack if one exists
+   if (!empty())
+      delete [] data; 
+   data = NULL;
+   capacity = 0;
+   num = 0;
+
+   // do nothing if there is nothing to do
+   if (rhs.empty())
+      return *this;
+
+   // copy the contents of the right-hand-side
+   grow(num = rhs.num);   // this could throw
+   for (int i = 0; i < rhs.num; i++)
+      data[i] = rhs.data[i];
+   
+   return *this;
+}
+
+
+/********************************************************
+ * STACK :: TOP
+ * Returns a reference to the top element in the stack. 
+ *******************************************************/
+template <class T>
+T & Stack <T> :: top() throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to reference the element from an empty Stack";
+   return data[num - 1];
+}
+
+/********************************************************
+ * STACK :: TOP
+ * Returns a reference to the top element in the stack. 
+ *******************************************************/
+template <class T>
+const T & Stack <T> :: const_top() const throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to reference the element from an empty Stack";
+   return data[num - 1];
+}
+
+/********************************************************
+ * STACK :: POP
+ * Removes the element on top of the stack, effectively reducing its size by
+ * one.
+ *******************************************************/
+template <class T>
+void Stack <T> :: pop() throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to pop from an empty Stack";
+   num--;
+}
+
+
+/********************************************************
+ * STACK :: PUSH
+ * Inserts a new element at the top of the stack, above its current
+ * top element. The content of this new element is initialized to a
+ * copy of t.
+ *******************************************************/
+template <class T>
+void Stack <T> :: push(const T & t) throw(const char *)
+{
+   // make sure there is room in our stack
+   if (num == capacity)
+      grow();
+
+   data[num++] = t;
+}
+
+/*********************************************************
+ * STACK :: GROW
+ * Grow the size of the stack to (at a minimum) of a given
+ * size.  If the size is set to zero, then the capacity will
+ * be doubled.  If the stack is currently not empty, the contents
+ * will be copied over to the new buffer
+ *********************************************************/
+template <class T>
+void Stack <T> :: grow(int capacity) throw(const char *)
+{
+   assert(capacity >= 0);
+   assert(num      >= 0);
+   
+   // determine the new buffer size
+   if (capacity == 0)
+      capacity = (this->capacity ? this->capacity * 2 : 2);
+
+   // allocate the new buffer
+   T * dataNew = new(std::nothrow) T[capacity];
+   if (NULL == dataNew)
+      throw "ERROR: Unable to allocate a new buffer for Stack";
+   this->capacity = capacity;
+
+   // copy the contents of the old buffer over to the new buffer
+   assert(num <= capacity);
+   if (NULL != data)
+      for (int i = 0; i < num; i++)
+         dataNew[i] = data[i];
+
+   // free the old
+   if (NULL != data)
+      delete [] data;
+   data = dataNew;
+}
+
+#endif // STACK_H
+week11.cpp0000600003530400007650000001747212735370666012521 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 11, Sorting
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise various Sort algorithsm. When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>        // for CIN and COUT
+#include <iomanip>         // for SETW
+#include <ctime>           // for time(), part of the random process
+#include <stdlib.h>        // for rand() and srand()
+#include "sortValue.h"     // for SortValue to instrument the sort algorithms
+#include "sortBubble.h"    // for sortBubble()
+#include "sortSelection.h" // for sortSelection()
+#include "sortInsertion.h" // for sortInsertion()
+#include "sortBinary.h"    // for sortBinary()
+#include "sortHeap.h"      // for sortHeap()
+#include "sortMerge.h"     // for sortMerge()
+#include "sortQuick.h"     // for sortQuick()
+using namespace std;
+
+// prototypes for our test functions
+void compareSorts();
+void testIndividualSorts(int choice);
+
+/******************************************
+ * SORT NAME AND FUNCTION
+ * This facilitates testing a number
+ * of sorts
+ *****************************************/
+struct SortNameAndFunction
+{
+   const char * name;
+   void (* sortInteger)(int       array[], int num);
+   void (* sortValue  )(SortValue array[], int num);
+};
+const SortNameAndFunction sorts[] =
+{
+   { NULL,             NULL,          NULL          },
+   { "Bubble Sort",    sortBubble,    sortBubble    },
+   { "Selection Sort", sortSelection, sortSelection },
+   { "Insertion Sort", sortInsertion, sortInsertion },
+   { "Binary Sort",    sortBinary,    sortBinary    },
+   { "Heap Sort",      sortHeap,      sortHeap      },
+   { "Merge Sort",     sortMerge,     sortMerge     },
+   { "Quick Sort",     sortQuick,     sortQuick     }
+};
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu, built from the sortValues list above
+   cout << "Select the test you want to run:\n";
+   cout << "\t0. To compare all the sorting algorithms\n";
+   for (int i = 1; i <= 7; i++)
+      cout << '\t' << i << ". "
+           << sorts[i].name << endl;
+
+   // user specifies his choice
+   int choice;
+   cout << "> ";
+   cin  >> choice;
+
+   // execute the user's choice
+   try
+   {
+      if (choice == 0)
+         compareSorts();
+      else if (choice >= 1 && choice <= 7)
+         testIndividualSorts(choice);
+      else
+         cout << "Unrecognized command, exiting...\n";
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+
+   return 0;
+}
+
+/*******************************************
+ * CREATE TEST ARRAYS
+ * Generate test arrays for the purpose of
+ * comparing sorts.  This function has one
+ * client: compareSort()
+ *****************************************/
+void createTestArrays(SortValue * & arrayStart,
+                      SortValue * & arraySort,
+                      int & num)
+{
+   // prompt for size
+   cout << "How many items in the test (10000 - 40000 are good numbers)? ";
+   cin  >> num;
+
+   // allocate the array
+   arrayStart = new(nothrow) SortValue[num];
+   arraySort  = new(nothrow) SortValue[num];
+   if (arrayStart == NULL || arraySort == NULL)
+   {
+      cout << "Unable to allocate that much memory";
+      return;
+   }
+
+   // fill the array with random values
+   cout << "What type of test would you like to run?\n";
+   cout << "   1. random numbers\n";
+   cout << "   2. already sorted in ascending order\n";
+   cout << "   3. already sorted in descending order\n";
+   cout << "   4. almost sorted in ascending order\n";
+   cout << "   5. random but with a small number of possible values\n";
+   cout << "> ";
+   int option;
+   cin >> option;
+
+   switch (option)
+   {
+      case 5:  // random but with a small number of possible values
+         for (int i = 0; i < num; i++)
+            arrayStart[i] = rand() % 10;
+         break;
+      case 4: // almost sorted in ascending order
+         for (int i = 0; i < num; i++)
+            arrayStart[i] = i + rand() % 10;
+         break;
+      case 3: // already sorted in decending order
+         for (int i = 0; i < num; i++)
+            arrayStart[i] = num - i;
+         break;
+      case 2: // already sorted in ascending order
+         for (int i = 0; i < num; i++)
+            arrayStart[i] = i;
+         break;
+      case 1: // random numbers
+      default: 
+         for (int i = 0; i < num; i++)
+            arrayStart[i].random();
+   }
+}
+
+
+/*******************************************
+ * COMPARE SORTS
+ * Compare the relative speed of the various sorts
+ ******************************************/
+void compareSorts()
+{
+   // allocate the array
+   SortValue * arrayStart;
+   SortValue * arraySort;
+   int num;
+   createTestArrays(arrayStart, arraySort, num);
+   if (arrayStart == NULL || arraySort == NULL)
+      return;
+
+   // get ready with the header to the table
+   srand(time(NULL));
+   cout.setf(ios::fixed);
+   cout.precision(2);
+   cout << "      Sort Name    Time       Assigns      Compares\n";
+   cout << " ---------------+-------+-------------+-------------\n";
+
+   for (int iSort = 1; iSort <= 7; iSort++)
+   {
+      // get ready by copying the un-sorted numbers to the array
+      for (int iValue = 0; iValue < num; iValue++)
+         arraySort[iValue] = arrayStart[iValue];
+      arraySort[0].reset();
+
+      // perform the sort
+      int msBegin = clock();
+      sorts[iSort].sortValue(arraySort, num);
+      int msEnd = clock();
+
+      // report the results
+      cout << setw(15) << sorts[iSort].name                    << " |"
+           << setw(6)  << (float)(msEnd - msBegin) / 1000000.0 << " |"
+           << setw(12) << arraySort[0].getAssigns()            << " |"
+           << setw(12) << arraySort[0].getCompares()           << endl;
+   }
+
+   // all done
+   delete [] arrayStart;
+   delete [] arraySort;
+}
+
+/*******************************************
+ * TEST INDIVIDUAL SORTS
+ * For a given sort selected by "choice",
+ * feed it 100 random 3-digit integers and
+ * display the results.
+ *
+ * To test with a smaller number of items,
+ * for debugging purposes, just set the size variable
+ * to a smaller value such as "size = 10;"
+ *******************************************/
+void testIndividualSorts(int choice)
+{
+   assert(choice >= 1 && choice <= 7);
+   
+   // prepare the array
+   int array[] =
+   {
+      889, 192, 528, 675, 154, 746, 562, 482, 448, 842, 929, 330, 615, 225,
+      785, 577, 606, 426, 311, 867, 773, 775, 190, 414, 155, 771, 499, 337,
+      298, 242, 656, 188, 334, 184, 815, 388, 831, 429, 823, 331, 323, 752,
+      613, 838, 877, 398, 415, 535, 776, 679, 455, 602, 454, 545, 916, 561,
+      369, 467, 851, 567, 609, 507, 707, 844, 643, 522, 284, 526, 903, 107,
+      809, 227, 759, 474, 965, 689, 825, 433, 224, 601, 112, 631, 255, 518,
+      177, 224, 131, 446, 591, 882, 913, 201, 441, 673, 997, 137, 195, 281,
+      563, 151,
+	   //5,2,4,3,1
+   };
+   int size = sizeof(array) / sizeof(array[0]);
+
+   // display the list before they are sorted
+   cout << sorts[choice].name << endl;
+   cout << "\tBefore:\t" << array[0];
+   for (int i = 1; i < size; i++)
+      cout << (i % 10 == 0 ? ",\n\t\t" : ", ")
+           << array[i];
+   cout << endl << endl;
+
+   // perform the sort
+   sorts[choice].sortInteger(array, size);
+
+   // report the results
+   bool sorted = true;
+   cout << "\tAfter:\t" << array[0];
+   for (int i = 1; i < size; i++)
+   {
+      cout << (i % 10 == 0 ? ",\n\t\t" : ", ")
+           << array[i];
+      if (array[i - 1] > array[i])
+         sorted = false;
+   }
+   cout << endl;
+   cout << "The array is "
+        << (sorted ? "" : "NOT ")
+        << "sorted\n";
+}
+
+makefile0000600003530400007650000000177112736114170012376 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 11, Sorts
+#     Brother JonesL, CS235
+# Author:
+#     John Vehikite, Tiffany Gohnert
+# Summary:
+#     Algorithms for seven different sorts.
+# Time:
+#     10 hrs
+# Hardest Part:
+#     We never completed Binary Sort in week 9, so that gave
+#     us an issue this week. 
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: week11.o
+	g++ -o a.out week11.o -g
+	tar -cf week11.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      week11.o     : the driver program
+##############################################################
+week11.o: bnode.h bst.h stack.h week11.cpp sortValue.h \
+		sortBinary.h sortInsertion.h sortHeap.h sortBubble.h \
+		sortSelection.h sortMerge.h sortQuick.h
+	g++ -c week11.cpp -g
+
