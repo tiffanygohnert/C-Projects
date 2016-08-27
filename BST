@@ -1,0 +1,1442 @@
+bnode.h0000600003530400007650000000555312730554066012146 0ustar  cs235s3g5student﻿#ifndef  NODE_H
+#define NODE_H
+#include <cassert>
+#include <iostream>
+
+using namespace std;
+
+//node class
+template <class T>
+class BinaryNode
+{
+
+public:
+	//default constructor
+	BinaryNode() : pRight(NULL), pLeft(NULL), pParent(NULL), data(0x00000000)/*, numItems(1)*/ {}
+
+	//non-default constructor 
+	BinaryNode(const T & t) : pRight(NULL), pLeft(NULL), pParent(NULL), data(t)/*, numItems(1)*/ {} /*throw (const char *)*/
+
+	void addLeft(const T & t)
+	{
+		BinaryNode <T> * tempBNode = new BinaryNode <T>(t);
+		this->pLeft = tempBNode;
+		tempBNode->pParent = this;
+		//numItems++;
+	}
+
+	void addLeft(BinaryNode <T> * bNode)
+	{
+		if (!bNode)
+		{
+			this->pLeft = NULL;
+			return;
+		}
+		this->pLeft = bNode;
+		bNode->pParent = this;
+		//numItems++;
+	}
+
+	void addRight(const T & t)
+	{
+		BinaryNode <T> * tempBNode = new BinaryNode <T>(t);
+		this->pRight = tempBNode;
+		tempBNode->pParent = this;
+		//numItems++;
+	}
+
+	void addRight(BinaryNode <T> * bNode)
+	{
+		if (!bNode)
+		{
+			this->pRight = NULL;
+			return;
+		}
+		this->pRight = bNode;
+		bNode->pParent = this;
+		//numItems++;
+	}
+
+	int size() const
+	{ 
+		if (this == NULL)
+			return 0;
+		else
+		{
+			int count = 1;
+			count += this->pLeft->size();
+			count += this->pRight->size();
+			return count;
+		}
+	}
+  
+	/*int countNodes(BinaryNode <T> * bNode)
+	{
+		unsigned count = 0;
+		if (bNode->pLeft)
+		{
+			countNodes(bNode->pLeft);
+			if (bNode->pRight)
+				countNodes(bNode->pRight);
+			count++;
+		}
+	}*/
+
+  // member variables 
+  BinaryNode <T> * pRight;
+  BinaryNode <T> * pLeft;
+  BinaryNode <T> * pParent;
+  T data;
+  //int numItems;
+};
+
+/*
+deleteBinaryTree(): Takes a BinaryNode as a parameter and 
+deletes all the children and itself. This is a recursive 
+function.
+*/
+template <class T>
+void deleteBinaryTree(BinaryNode <T> * &bNode)
+{
+	if (bNode->pLeft)
+	{
+		deleteBinaryTree(bNode->pLeft);
+		if (bNode->pRight)
+			deleteBinaryTree(bNode->pRight);
+		delete bNode;
+		bNode = NULL;
+	}
+}
+
+/*
+Insertion operator: Takes a constant BinaryNode * as a 
+parameter and displays the tree under the passed parameter. 
+This is a recursive function traversing the tree in infix 
+order. A single space will be displayed after every element.
+*/
+
+template <class T>
+ostream & operator << (ostream & out, BinaryNode <T> * rhs)
+{
+	// prints R, L, R, LL, LR, RL, RR... incorrect
+	/*if (rhs != NULL)
+	{
+		out << rhs->data << " ";
+		out << (rhs->pLeft);
+		out << (rhs->pRight);
+	}
+	return out;*/
+	
+	// Postorder
+	//if (rhs != NULL)
+	//{
+	//	out << (rhs->pLeft);
+	//	//out << rhs->data << " ";
+	//	out << (rhs->pRight);
+	//	out << rhs->data << " ";
+	//}
+	//return out;
+
+	// Inorder!! YAY!
+	if (rhs != NULL)
+	{
+		out << (rhs->pLeft);
+		out << rhs->data << " ";
+		out << (rhs->pRight);
+		//out << rhs->data << " ";
+	}
+	return out;
+}
+
+#endif
+bst.h0000600003530400007650000002731112731712617011642 0ustar  cs235s3g5student/***********************************************************************
+ * Component:
+ *    Week 09, Binary Search Tree (BST)
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    
+ * Summary:
+ *    
+ ************************************************************************/
+
+#ifndef BST_H
+#define BST_H
+
+#include "bnode.h"    // for BinaryNode
+#include "stack.h"    // for Stack
+#include <algorithm>  // for swap
+
+ // forward declaration for the BST iterator
+template <class T>
+class BSTIterator;
+
+/*****************************************************************
+* BINARY SEARCH TREE
+* Create a Binary Search Tree
+*****************************************************************/
+template <class T>
+class BST
+{
+public:
+	// constructor
+	BST() : root(NULL) {};
+
+	// copy constructor
+	BST(const BST & rhs);
+
+	~BST();
+
+	int  size() const { return empty() ? 0 : root->size(); }   // BinaryNode class needs a size function
+
+
+	// determine if the tree is empty
+	bool empty() const
+	{
+		return (root == NULL);
+	}
+
+	// clear all the contests of the tree
+	void clear()
+	{
+		BinaryNode <T> * left = root->pLeft;
+		BinaryNode <T> * right = root->pRight;
+		if (root)
+		{
+			deleteBinaryTree(left);
+			deleteBinaryTree(right);
+			delete root;   // visit => delete node
+			root = NULL;
+		}
+	}
+
+	// overloaded assignment operator
+	BST & operator = (const BST & rhs) throw (const char *)
+	{
+		root = clone(rhs.root);
+		return *this;
+	}
+
+	// insert an item
+	void insert(const T & t) throw (const char *);
+
+	// remove an item
+	void remove(BSTIterator <T> & it);
+
+	// find a given item
+	BSTIterator <T> find(const T & t);
+	
+	//Add to array
+	void AddToArray(BinaryNode <T> * add,T arr[], int i);
+	void inorder(BinaryNode<T> * node);
+
+	// the usual iterator stuff
+	BSTIterator <T> begin();
+	BSTIterator <T> end() { return BSTIterator <T>(NULL); }
+	BSTIterator <T> rbegin();
+	BSTIterator <T> rend() { return BSTIterator <T>(NULL); }
+
+	BinaryNode <T> * clone(BinaryNode <T> * ptr) const;
+	
+private:
+
+	BinaryNode <T> * root;
+};
+
+template<class T>
+BinaryNode <T> * BST<T>::clone(BinaryNode <T> * ptr) const
+{
+	if (ptr)
+	{
+		BinaryNode <T> *newnode = new BinaryNode <T> (ptr->data);
+		newnode->pLeft = clone(ptr->pLeft);
+		newnode->pRight = clone(ptr->pRight);
+		return newnode;
+	}
+	return NULL;
+}
+
+/*********************************************************
+* copy constructor
+**********************************************************/
+template <class T>
+BST<T>::BST(const BST &rhs)
+{
+	root = clone(rhs.root);
+}
+
+/*****************************************************
+* Destructor
+*******************************************************/
+template <class T>
+BST<T>::~BST()
+{
+	if (this->root != NULL)
+	{
+		deleteBinaryTree(this->root);
+	}
+}
+
+
+/*****************************************************
+* BST :: BEGIN
+* Return the first node (left-most) in a binary search tree
+****************************************************/
+template <class T>
+BSTIterator <T> BST <T> ::begin()
+{
+	Stack < BinaryNode <T> * > nodes;
+
+	nodes.push(NULL);
+	nodes.push(root);
+	while (nodes.top() != NULL && nodes.top()->pLeft)
+		nodes.push(nodes.top()->pLeft);
+
+	return nodes;
+}
+
+/*****************************************************
+* BST :: RBEGIN
+* Return the last node (right-most) in a binary search tree
+****************************************************/
+template <class T>
+BSTIterator <T> BST <T> ::rbegin()
+{
+	Stack < BinaryNode <T> * > nodes;
+
+	nodes.push(NULL);
+	nodes.push(root);
+	while (nodes.top() != NULL && nodes.top()->pRight)
+		nodes.push(nodes.top()->pRight);
+
+	return nodes;
+}
+
+/*****************************************************
+* BST :: INSERT
+* Insert a node at a given location in the tree
+****************************************************/
+template <class T>
+void BST <T> ::insert(const T & t) throw (const char *)
+{
+	/*BinaryNode <T> * temp = new BinaryNode <T> * ();
+	if (root == NULL) {
+		temp->data = t;
+		temp->pLeft = NULL;
+		temp->pRight = NULL;
+		root = temp;
+		return;
+	}
+	else
+	{
+		temp = root;
+		temp->pParent = 0;
+		bool found = false;
+		while (!found && temp != 0)
+		{
+			root->pParent = temp;
+			if (t < temp->data)
+				temp = temp->pLeft;
+			else if (temp->data < t)
+				temp = temp->pRight;
+			else
+				found = true;
+		}
+		if (!found)
+		{
+			temp = new BinaryNode <T>(t);
+			if (root->pParent == 0)
+				root = temp;
+			else if (t < root->pParent->data)
+				root->pParent->pLeft = temp;
+			else
+				root->pParent->pRight = temp;
+		}
+		else
+			cout << "Item already in the tree\n";*/
+	BinaryNode <T> * locptr = root;   // search pointer
+	BinaryNode <T> * parent = 0;        // pointer to parent of current node
+	bool found = false;     // indicates if item already in BST
+	while (!found && locptr != 0)
+	{
+		parent = locptr;
+		if (t < locptr->data)       // descend left
+			locptr = locptr->pLeft;
+		else if (locptr->data < t)  // descend right
+			locptr = locptr->pRight;
+		else                           // item found
+			found = true;
+	}
+	if (!found)
+	{                                 // construct node containing item
+		locptr = new BinaryNode <T> (t);
+		if (parent == 0)               // empty tree
+			root = locptr;
+		else if (t < parent->data)  // insert to left of parent
+			parent->pLeft = locptr;
+		else                           // insert to right of parent
+			parent->pRight = locptr;
+	}
+	else
+		cout << "Item already in the tree\n";
+}
+
+/*************************************************
+* BST :: REMOVE
+* Remove a given node as specified by the iterator
+************************************************/
+template <class T>
+void BST <T> ::remove(BSTIterator <T> & it)
+{
+	BinaryNode<T> * bnode = it.getNode();
+	BinaryNode<T> * subtree = bnode->pLeft;
+	if (subtree == 0)
+		subtree = bnode->pRight;
+	if (root->pParent == 0)
+		root = subtree;
+	else if (root->pParent->pLeft == bnode)
+		root->pParent->pLeft = subtree;
+	else
+		root->pParent->pRight = subtree;
+}
+
+/****************************************************
+* BST :: FIND
+* Return the node corresponding to a given value
+****************************************************/
+template <class T>
+BSTIterator <T> BST <T> ::find(const T & t)
+{
+
+//Stack < BinaryNode <T> * > tempPointer;
+BinaryNode <T> * temp = root;
+	temp = root;
+		temp->pParent = 0;
+		bool found = false;
+		
+		//search 
+		while (!found && temp != 0)
+		{
+			root->pParent = temp;
+			if (t < temp->data)
+				temp = temp->pLeft;
+			else if (temp->data < t)
+				temp = temp->pRight;
+			else
+				found = true;
+		}
+		//If no element is found, the end() iterator will be returned.
+		if (!found)
+		{
+		
+		 BST <char> tree;
+		 
+			return tree.end();
+		}
+		
+		//return item found
+		else			
+			return temp; 
+	
+}
+
+
+/**********************************************************
+* BINARY SEARCH TREE ITERATOR
+* Forward and reverse iterator through a BST
+*********************************************************/
+template <class T>
+class BSTIterator
+{
+public:
+	// constructors
+	BSTIterator(BinaryNode <T> * p = NULL) { nodes.push(p); }
+	BSTIterator(Stack <BinaryNode <T> *> & s) { nodes = s; }
+	BSTIterator(const BSTIterator <T> & rhs) { nodes = rhs.nodes; }
+
+	// assignment
+	BSTIterator <T> & operator = (const BSTIterator <T> & rhs)
+	{
+		// need an assignment operator for the Stack class.
+		nodes = rhs.nodes;
+		return *this;
+	}
+
+	// compare
+	bool operator == (const BSTIterator <T> & rhs) const
+	{
+		// only need to compare the leaf node 
+		return rhs.nodes.const_top() == nodes.const_top();
+	}
+	bool operator != (const BSTIterator <T> & rhs) const
+	{
+		// only need to compare the leaf node 
+		return rhs.nodes.const_top() != nodes.const_top();
+	}
+
+	// de-reference. Cannot change because it will invalidate the BST
+	T & operator * ()
+	{
+		return nodes.top()->data;
+	}
+
+	// iterators
+	BSTIterator <T> & operator ++ ();
+	BSTIterator <T>   operator ++ (int postfix)
+	{
+		BSTIterator <T> itReturn = *this;
+		++(*this);
+		return itReturn;
+	}
+	BSTIterator <T> & operator -- ();
+	BSTIterator <T>   operator -- (int postfix)
+	{
+		BSTIterator <T> itReturn = *this;
+		--(*this);
+		return itReturn;
+	}
+
+	// must give friend status to remove so it can call getNode() from it
+	friend void BST <T> ::remove(BSTIterator <T> & it);
+
+private:
+
+	// get the node pointer
+	BinaryNode <T> * getNode() { return nodes.top(); }
+
+	// the stack of nodes
+	Stack < BinaryNode <T> * > nodes;
+};
+
+
+/**************************************************
+* BST ITERATOR :: INCREMENT PREFIX
+* advance by one
+*************************************************/
+template <class T>
+BSTIterator <T> & BSTIterator <T> :: operator ++ ()
+{
+	// do nothing if we have nothing
+	if (nodes.top() == NULL)
+		return *this;
+
+	// if there is a right node, take it
+	if (nodes.top()->pRight != NULL)
+	{
+		nodes.push(nodes.top()->pRight);
+
+		// there might be more left-most children
+		while (nodes.top()->pLeft)
+			nodes.push(nodes.top()->pLeft);
+		return *this;
+	}
+
+	// there are no right children, the left are done
+	assert(nodes.top()->pRight == NULL);
+	BinaryNode <T> * pSave = nodes.top();
+	nodes.pop();
+
+	// if the parent is the NULL, we are done!
+	if (NULL == nodes.top())
+		return *this;
+
+	// if we are the left-child, got to the parent.
+	if (pSave == nodes.top()->pLeft)
+		return *this;
+
+	// we are the right-child, go up as long as we are the right child!
+	while (nodes.top() != NULL && pSave == nodes.top()->pRight)
+	{
+		pSave = nodes.top();
+		nodes.pop();
+	}
+
+	return *this;
+}
+
+/**************************************************
+* BST ITERATOR :: DECREMENT PREFIX
+* advance by one
+*************************************************/
+template <class T>
+BSTIterator <T> & BSTIterator <T> :: operator -- ()
+{
+	// do nothing if we have nothing
+	if (nodes.top() == NULL)
+		return *this;
+
+	// if there is a left node, take it
+	if (nodes.top()->pLeft != NULL)
+	{
+		nodes.push(nodes.top()->pLeft);
+
+		// there might be more right-most children
+		while (nodes.top()->pRight)
+			nodes.push(nodes.top()->pRight);
+		return *this;
+	}
+
+	// there are no left children, the right are done
+	assert(nodes.top()->pLeft == NULL);
+	BinaryNode <T> * pSave = nodes.top();
+	nodes.pop();
+
+	// if the parent is the NULL, we are done!
+	if (NULL == nodes.top())
+		return *this;
+
+	// if we are the right-child, got to the parent.
+	if (pSave == nodes.top()->pRight)
+		return *this;
+
+	// we are the left-child, go up as long as we are the left child!
+	while (nodes.top() != NULL && pSave == nodes.top()->pLeft)
+	{
+		pSave = nodes.top();
+		nodes.pop();
+	}
+
+	return *this;
+}
+
+
+//put tree into array
+/****************************************************
+* BST :: AddToArray
+* put tree into array
+****************************************************/
+template <class T>
+void BST <T> ::AddToArray(BinaryNode <T> * add,T arr[], int i)
+{
+BinaryNode <T> * temp = root;
+	temp = root;
+
+//null check the node
+     if(temp == NULL)
+  {   
+//I think the problem is here
+  //return i;
+  }
+
+  //add to array
+     arr[i] =temp->data;
+     i++;
+	 
+	 //null check here 
+    if(temp->pLeft != NULL)
+         { AddToArray(temp->pLeft, arr, i);}
+  if(temp->pRight != NULL)
+          AddToArray(temp->pRight, arr, i);
+
+//add to array
+     arr[i] =temp->data;
+     i++;
+
+}
+
+
+/****************************************************
+* BST :: inorder
+* put tree in inorder
+****************************************************/
+template <class T>
+void BST <T> :: inorder(BinaryNode<T> * node){
+
+node = root; 
+    if(node){
+        inorder(node->pLeft);
+        cout << node->data << "IT'S WORKING!!!!! ";
+        inorder(node->pRight);
+    }
+}
+
+#endif // BST_HsortBinary.h0000600003530400007650000000171612731712617013207 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 09, Sort Binary
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    This program will implement the Binary Tree Sort
+ ************************************************************************/
+
+#ifndef SORT_BINARY_H
+#define SORT_BINARY_H
+#include "bst.h"
+#include <stdio.h>     
+#include <stdlib.h>     
+
+
+
+/*****************************************************
+ * SORT BINARY
+ * Perform the binary tree sort
+ ****************************************************/
+template <class T>
+void sortBinary(T array[], int num)
+{
+
+ BinaryNode<T> * n=NULL ;
+
+ //insert array into tree;
+ //BST< BinaryNode <T> * > bst;
+ BST <T> bst;
+ 
+  for (int i = 0; i < num; i++)
+   { 
+	bst.insert(array[i]);
+	}
+ 
+//sort the tree
+
+bst.inorder(n);
+
+
+//copy the elements from the tree back into the input array.
+
+bst.AddToArray(n,array, num);
+
+
+}
+
+
+
+
+
+
+
+
+#endif // SORT_BINARY_H
+stack.h0000600003530400007650000001354412731172253012156 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Lesson 02, Stack
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    This program will implement a stack
+ ************************************************************************/
+
+#ifndef STACK_H
+#define STACK_H
+
+#include <cassert>  // because I am paranoid
+
+/**************************************************
+ * STACK
+ * First-in-Last-out data structure
+ *************************************************/
+template <class T>
+class Stack
+{
+public:
+   // constructors and destructors
+   Stack() : data(NULL), capacity(0), num(0) {                               }
+   Stack(int capacity)         throw(const char *);
+   Stack(const Stack<T> & rhs) throw(const char *);;
+   ~Stack()                                  { if (!empty()) delete [] data; }
+
+   // assignment operator
+   Stack <T> & operator = (const Stack <T> & rhs) throw (const char *);
+   
+   // standard container interfaces
+   bool empty() const                        { return num == 0;              }
+   int  size () const                        { return num;                   }
+
+   // stack-specific interfaces
+   void pop()                  throw(const char *);
+   T &  top()                  throw(const char *);
+   const T & const_top() const throw(const char *);
+   void push(const T & t)      throw(const char *);
+  
+private:
+   void grow(int capacity = 0) throw(const char *);
+  
+   T * data;             // dynamically allocated data for the stack
+   int capacity;         // the size of the data array
+   int num;              // the number of items currently used in the array
+};
+
+/**********************************************************
+ * STACK :: copy constructor
+ *********************************************************/
+template <class T>
+Stack <T> :: Stack (int newCapacity) throw (const char *)
+{
+   // initially empty
+   data = NULL;
+   capacity = 0;
+   num = 0;
+
+   // allocate the buffer
+   assert(newCapacity >= 0);
+   grow(newCapacity);     // this could throw
+}
+
+/**********************************************************
+ * STACK :: copy constructor
+ *********************************************************/
+template <class T>
+Stack <T> :: Stack (const Stack <T> & rhs) throw (const char *)
+{
+   data = NULL;
+   capacity = 0;
+   num = 0;
+   *this = rhs;
+}
+
+/*********************************************************
+ * STACK :: assign
+ * Copy one stack onto another
+ ********************************************************/
+template <class T>
+Stack<T> & Stack <T> :: operator = (const Stack <T> & rhs) throw (const char *)
+{
+   assert(rhs.capacity >= 0);
+   assert(rhs.num      >= 0);
+   assert(rhs.num <= rhs.capacity);
+
+   // delete the old stack if one exists
+   if (!empty())
+      delete [] data; 
+   data = NULL;
+   capacity = 0;
+   num = 0;
+
+   // do nothing if there is nothing to do
+   if (rhs.empty())
+      return *this;
+
+   // copy the contents of the right-hand-side
+   grow(num = rhs.num);   // this could throw
+   for (int i = 0; i < rhs.num; i++)
+      data[i] = rhs.data[i];
+   
+   return *this;
+}
+
+
+/********************************************************
+ * STACK :: TOP
+ * Returns a reference to the top element in the stack. 
+ *******************************************************/
+template <class T>
+T & Stack <T> :: top() throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to reference the element from an empty Stack";
+   return data[num - 1];
+}
+
+/********************************************************
+ * STACK :: TOP
+ * Returns a reference to the top element in the stack. 
+ *******************************************************/
+template <class T>
+const T & Stack <T> :: const_top() const throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to reference the element from an empty Stack";
+   return data[num - 1];
+}
+
+/********************************************************
+ * STACK :: POP
+ * Removes the element on top of the stack, effectively reducing its size by
+ * one.
+ *******************************************************/
+template <class T>
+void Stack <T> :: pop() throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to pop from an empty Stack";
+   num--;
+}
+
+
+/********************************************************
+ * STACK :: PUSH
+ * Inserts a new element at the top of the stack, above its current
+ * top element. The content of this new element is initialized to a
+ * copy of t.
+ *******************************************************/
+template <class T>
+void Stack <T> :: push(const T & t) throw(const char *)
+{
+   // make sure there is room in our stack
+   if (num == capacity)
+      grow();
+
+   data[num++] = t;
+}
+
+/*********************************************************
+ * STACK :: GROW
+ * Grow the size of the stack to (at a minimum) of a given
+ * size.  If the size is set to zero, then the capacity will
+ * be doubled.  If the stack is currently not empty, the contents
+ * will be copied over to the new buffer
+ *********************************************************/
+template <class T>
+void Stack <T> :: grow(int capacity) throw(const char *)
+{
+   assert(capacity >= 0);
+   assert(num      >= 0);
+   
+   // determine the new buffer size
+   if (capacity == 0)
+      capacity = (this->capacity ? this->capacity * 2 : 2);
+
+   // allocate the new buffer
+   T * dataNew = new(std::nothrow) T[capacity];
+   if (NULL == dataNew)
+      throw "ERROR: Unable to allocate a new buffer for Stack";
+   this->capacity = capacity;
+
+   // copy the contents of the old buffer over to the new buffer
+   assert(num <= capacity);
+   if (NULL != data)
+      for (int i = 0; i < num; i++)
+         dataNew[i] = data[i];
+
+   // free the old
+   if (NULL != data)
+      delete [] data;
+   data = dataNew;
+}
+
+#endif // STACK_H
+week09.cpp0000600003530400007650000003311612731426352012507 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 09, Binary Search Trees and the Binary Sort
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise the BST class.  When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>      // for CIN and COUT
+#include <string>        // for STRING
+#include "bst.h"         // for BST class which should be in bst.h
+#include "sortBinary.h"  // for sortBinary()
+using namespace std;
+
+
+// prototypes for our four test functions
+void testSimple();
+void testAdd();
+void testIterate();
+void testDelete();
+void testSort();
+
+// To get your program to compile, you might need to comment out a few
+// of these. The idea is to help you avoid too many compile errors at once.
+// I suggest first commenting out all of these tests, then try to use only
+// TEST1.  Then, when TEST1 works, try TEST2 and so on.
+#define TEST1   // for testSimple()
+#define TEST2   // for testAdd()
+#define TEST3   // for testIterate()
+#define TEST4   // for testDelete()
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu
+   cout << "Select the test you want to run:\n";
+   cout << "\t1. Just create and destroy a BST\n";
+   cout << "\t2. The above plus add a few nodes\n";
+   cout << "\t3. The above plus display the contents of a BST\n";
+   cout << "\t4. The above plus find and delete nodes from a BST\n";
+   cout << "\ta. To test the binarySort() function\n";
+
+   // select
+   char choice;
+   cout << "> ";
+   cin  >> choice;
+   switch (choice)
+   {
+      case 'a':
+         testSort();
+         break;
+      case '1':
+         testSimple();
+         cout << "Test 1 complete\n";
+         break;
+      case '2':
+         testAdd();
+         cout << "Test 2 complete\n";
+         break;
+      case '3':
+         testIterate();
+         cout << "Test 3 complete\n";
+         break;
+      case '4':
+         testDelete();
+         cout << "Test 4 complete\n";
+         break;
+      default:
+         cout << "Unrecognized command, exiting...\n";
+   }
+
+   return 0;
+}
+
+/*******************************************
+ * TEST SIMPLE
+ * Very simple test for a BST: create and destroy
+ ******************************************/
+void testSimple()
+{
+#ifdef TEST1
+   try
+   {
+      // Test 1.a: bool BST with default constructor
+      cout << "Create a bool BST using the default constructor\n";
+      BST <bool> b1;
+      cout << "\tSize:     " << b1.size()                   << endl;
+      cout << "\tEmpty?    " << (b1.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.b: copy the BST using the copy constructor
+      {
+         cout << "Create a bool BST using the copy constructor\n";
+         BST <bool> b2(b1);
+         cout << "\tSize:     " << b2.size()                   << endl;
+         cout << "\tEmpty?    " << (b2.empty() ? "Yes" : "No") << endl;
+      }
+
+      // Test 1.c: copy the BST using the assignment operator
+      cout << "Copy a bool BST using the assignment operator\n";
+      BST <bool> b3;
+      b3 = b1;
+      cout << "\tSize:     " << b3.size()                   << endl;
+      cout << "\tEmpty?    " << (b3.empty() ? "Yes" : "No") << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif //TEST1
+}
+
+/*******************************************
+ * TEST ADD
+ * Add a few nodes together to create a tree, then
+ * destroy it when done
+ *****************************************/
+void testAdd()
+{
+#ifdef TEST2
+   try
+   {
+      // create
+      cout << "Create an integer Binary Search Tree\n";
+      BST <int> tree1;
+
+      tree1.insert(8);     //               8
+      tree1.insert(4);     //          +----+----+
+      tree1.insert(12);    //          4         12
+      tree1.insert(2);     //       +--+--+   +--+--+
+      tree1.insert(6);     //       2     6   9     13
+      tree1.insert(9);     //     +-+   +-+   +-+
+      tree1.insert(13);    //     0     5       11
+      tree1.insert(0);
+      tree1.insert(5);
+      tree1.insert(11);
+      cout << "\tSize of tree1: " << tree1.size() << endl;
+
+      // copy the tree to another
+      BST <int> tree2(tree1);
+      cout << "\tSize of tree2: " << tree1.size() << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST2   
+}
+
+/******************************************
+ * DISPLAY A TREE
+ * Display the contents of a BST using an iterator
+ ******************************************/
+template <class T>
+ostream & operator << (ostream & out, BST <T> & rhs)
+{
+   out << '{';
+
+#ifdef TEST3
+   BSTIterator <T> it;
+   for (it = rhs.begin(); it != rhs.end(); ++it)
+      out << "  " << *it;
+#endif // TEST3
+   
+   out << "  }";
+   return out;
+}
+
+/*******************************************
+ * TEST ITERATE
+ * We will build a binary tree and display the
+ * results on the screen
+ ******************************************/
+void testIterate()
+{
+#ifdef TEST3
+   cout.setf(ios::fixed | ios::showpoint);
+   cout.precision(1);   
+
+   //
+   // An empty tree
+   //
+   try
+   {
+      BST <bool> tree;      
+      cout << "Empty tree\n";
+      cout << "\tSize:     " << tree.size() << endl;
+      cout << "\tContents: " << tree        << endl;
+   }
+   catch (const char * s)
+   {
+      cout << s << endl;
+   }
+
+   //
+   // A tree with three nodes
+   //
+   try
+   {
+      cout << "A tree with three nodes\n";
+      BST <double> tree1;
+      BST <double> tree2;
+
+      // fill the tree
+      cout << "\tFill the BST with: 2.2  1.1  3.3\n";
+      tree1.insert(2.2);     //          2.2
+      tree1.insert(1.1);     //     +-----+-----+    
+      tree1.insert(3.3);     //    1.1         3.3
+      cout << "\tContents forward:  " << tree1 << endl;
+
+      // copy the tree and clear the first
+      tree2 = tree1;
+      tree1.clear();
+
+      // display the contents backwards
+      cout << "\tContents backward: {";
+      BSTIterator <double> it;
+      for (it = tree2.rbegin(); it != tree2.rend(); --it)
+         cout << "  " << *it;
+      cout << "  }\n";
+   }
+   catch (const char * s)
+   {
+      cout << s << endl;
+   }      
+   
+   //
+   // a non-trivial tree
+   //
+   try
+   {
+      BST <string> tree1;
+      BST <string> tree2;
+
+      // fill the tree
+      cout << "Fill the BST with: f  c  i  b  e  g  j  a  d  h  \n";
+      tree1.insert(string("f"));     //               f
+      tree1.insert(string("c"));     //          +----+----+
+      tree1.insert(string("i"));     //          c         i
+      tree1.insert(string("b"));     //       +--+--+   +--+--+
+      tree1.insert(string("e"));     //       b     e   g     j
+      tree1.insert(string("g"));     //     +-+   +-+   +-+
+      tree1.insert(string("j"));     //     a     d       h
+      tree1.insert(string("a"));     
+      tree1.insert(string("d"));
+      tree1.insert(string("h"));
+      cout << "\tSize:     " << tree1.size() << endl;
+      cout << "\tContents: " << tree1        << endl;
+
+      // copy the tree
+      cout << "The tree after it was cleared\n";
+      tree2 = tree1;
+      tree1.clear();
+      cout << "\tSize:     " << tree1.size() << endl;
+      cout << "\tContents: " << tree1        << endl;
+
+      // show the copied tree
+      cout << "The tree that was copied\n";
+      cout << "\tSize:     " << tree2.size() << endl;
+      cout << "\tContents: " << tree2        << endl;
+   }
+   catch (const char * s)
+   {
+      cout << "Thrown exception: " << s << endl;
+   }
+#endif // TEST3
+}
+
+/*******************************************
+ * TEST DELETE
+ * Insert a few items into a tree, then delete a few items
+ *******************************************/
+void testDelete()
+{
+#ifdef TEST4
+   try
+   {
+      BST <char> tree;
+      BSTIterator <char> it;
+
+      // Fill the tree
+      cout << "Fill the tree with: G F A E C B D J H I O M K L N P\n";
+      tree.insert('G');
+      tree.insert('F'); //                       G
+      tree.insert('A'); //          +------------+------------+
+      tree.insert('E'); //          F                         J
+      tree.insert('C'); //   +------+                  +------+------+
+      tree.insert('B'); //   A                         H             O
+      tree.insert('D'); //   +---+                     +---+     +---+---+
+      tree.insert('J'); //       E                         I     M       P
+      tree.insert('H'); //    +--+                            +--+--+
+      tree.insert('I'); //    C                               K     N
+      tree.insert('O'); //  +-+-+                             +-+
+      tree.insert('M'); //  B   D                               L
+      tree.insert('K');
+      tree.insert('L');
+      tree.insert('N');
+      tree.insert('P');
+
+      // display the tree
+      cout << "\tContents: "
+           << tree
+           << endl;
+
+      //
+      // Remove node D: leaf
+      //
+
+      cout << "Remove a leaf node: 'D'\n";
+      
+      // find node 'D' and remove it
+      it = tree.find('D');
+      if (it == tree.end())
+         cout << "\tNode not found!\n";
+      else
+         cout << "\tNode '" << *it << "' found\n";
+      if (it != tree.end())
+         tree.remove(it);
+
+      // display the tree
+      cout << "\tContents: "
+           << tree
+           << endl;
+      
+      // look for node 'D' again
+      cout << "Attempt to remove 'D' again\n";
+      it = tree.find('D');
+      if (it == tree.end())
+         cout << "\tNode not found!\n";
+      else
+         cout << "\tNode '" << *it << "' found\n";
+
+      //
+      // Remove node E: one child (left)
+      //
+
+      cout << "Remove a one-child node: 'E'\n";
+      
+      // look for node 'E' and remove it
+      it = tree.find('E');
+      if (it == tree.end())
+         cout << "\tNode not found!\n";
+      else
+         cout << "\tNode '" << *it << "' found\n";
+      if (it != tree.end())
+         tree.remove(it);
+
+      // display the tree
+      cout << "\tContents: "
+           << tree
+           << endl;
+      
+      //
+      // Remove node J: two children where 'K' is inorder successor
+      //
+
+      cout << "Remove a two-child node: 'J'\n";
+
+      // look for node 'J' and remove it
+      it = tree.find('J');
+      if (it == tree.end())
+         cout << "\tNode not found!\n";
+      else
+         cout << "\tNode '" << *it << "' found\n";
+      if (it != tree.end())
+         tree.remove(it);
+
+      // display the tree
+      cout << "\tContents: "
+           << tree
+           << endl;
+
+      //
+      // Remove node G: the root
+      //
+
+      cout << "Remove the root: 'G'\n";
+
+      // look for node 'G' and remove it
+      it = tree.find('G');
+      if (it == tree.end())
+         cout << "\tNode not found!\n";
+      else
+         cout << "\tNode '" << *it << "' found\n";
+      if (it != tree.end())
+         tree.remove(it);
+
+      // display the tree
+      cout << "\tContents: "
+           << tree
+           << endl;
+   }
+   catch (const char * s)
+   {
+      cout << "Thrown exception: " << s << endl;
+   }
+#endif // TEST4
+}
+
+/***************************************
+ * TEST SORT
+ * Sort three things using the binary sort
+ ***************************************/
+void testSort()
+{
+   cout.setf(ios::fixed | ios::showpoint);
+   cout.precision(1);
+
+   //
+   // Test a small set of strings
+   //
+
+   cout << "Four string objects\n";
+
+   // before
+   string array1[4] =
+   {
+      string("Beta"), string("Alpha"), string("Epsilon"), string("Delta")
+   };
+   int size1 = sizeof(array1) / sizeof(array1[0]);
+   cout << "\tBefore: " << array1[0];
+   for (int i = 1; i < size1; i++)
+      cout << ", " << array1[i];
+   cout << endl;
+
+   // sort
+   sortBinary(array1, size1);
+
+   // after
+   cout << "\tAfter:  " << array1[0];
+   for (int i = 1; i < size1; i++)
+      cout << ", " << array1[i];
+   cout << endl;
+
+   //
+   // Test a medium set of floats
+   //
+
+   cout << "Twenty one-decimal numbers\n";
+
+   // before
+   float array2[20] =
+   {
+      5.1, 2.4, 8.2, 2.7, 4.7, 1.8, 9.9, 3.4, 5.0, 1.0,
+      4.4, 3.4, 8.3, 2.9, 1.7, 7.9, 9.5, 9.3, 3.6, 2.9      
+   };
+   int size2 = sizeof(array2) / sizeof(array2[0]);
+   cout << "\tBefore:\t" << array2[0];
+   for (int i = 1; i < size2; i++)
+      cout << (i % 10 == 0 ? ",\n\t\t" : ", ")
+           << array2[i];
+   cout << endl;
+
+   // sort
+   sortBinary(array2, size2);   
+
+   // after
+   cout << "\tAfter:\t" << array2[0];
+   for (int i = 1; i < size2; i++)
+      cout << (i % 10 == 0 ? ",\n\t\t" : ", ")
+           << array2[i];
+   cout << endl;
+
+   //
+   // Test a large set of integers
+   //
+
+   cout << "One hundred three-digit numbers\n";
+
+   // before
+   int array3[100] =
+   {
+      889, 192, 528, 675, 154, 746, 562, 482, 448, 842, 929, 330, 615, 225,
+      785, 577, 606, 426, 311, 867, 773, 775, 190, 414, 155, 771, 499, 337,
+      298, 242, 656, 188, 334, 184, 815, 388, 831, 429, 823, 331, 323, 752,
+      613, 838, 877, 398, 415, 535, 776, 679, 455, 602, 454, 545, 916, 561,
+      369, 467, 851, 567, 609, 507, 707, 844, 643, 522, 284, 526, 903, 107,
+      809, 227, 759, 474, 965, 689, 825, 433, 224, 601, 112, 631, 255, 518,
+      177, 224, 131, 446, 591, 882, 913, 201, 441, 673, 997, 137, 195, 281,
+      563, 151,
+   };
+   int size3 = sizeof(array3) / sizeof(array3[0]);
+   cout << "\tBefore:\t" << array3[0];
+   for (int i = 1; i < size3; i++)
+      cout << (i % 10 == 0 ? ",\n\t\t" : ", ")
+           << array3[i];
+   cout << endl;
+
+   // sort
+   sortBinary(array3, size3);
+
+   // after
+   cout << "\tAfter:\t" << array3[0];
+   for (int i = 1; i < size3; i++)
+      cout << (i % 10 == 0 ? ",\n\t\t" : ", ")
+           << array3[i];
+   cout << endl;
+}
+makefile0000600003530400007650000000160212731426254012373 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 09, Binary Search Tree
+#     Brother JonesL, CS235
+# Author:
+#     John Vehikite, Tiffany Gohnert
+# Summary:
+#     This class simulates a binary search tree.
+# Time:
+#     15+ hours
+# Most difficult part:
+#     We were unable to figure out remove()
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: week09.o
+	g++ -o a.out week09.o -g
+	tar -cf week09.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      week09.o     : the driver program
+##############################################################
+week09.o: bnode.h bst.h stack.h week09.cpp sortBinary.h
+	g++ -c week09.cpp -g
+
