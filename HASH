@@ -1,0 +1,1206 @@
+hash.h0000600003530400007650000000604212741111354011763 0ustar  cs235s3g5student/***********************************************************************
+ * Component:
+ *    Week 11, Hash
+ *    Brother JonesL, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This class represents a Hash.
+ ************************************************************************/
+
+#ifndef HASH_H
+#define HASH_H
+
+#include "list.h" // for List
+
+
+ // forward declaration for the BST iterator
+template <class T>
+class Hash;
+
+/*****************************************************************
+* HASH
+* Create a Hash
+*****************************************************************/
+template <class T>
+class Hash
+{
+public:
+
+	// non-default constructor
+	Hash(int numBuckets) 
+	{
+		numElements = 0;
+		this->numBuckets = numBuckets;
+		linkedList = new List <T> [numBuckets];
+	}
+
+	// copy constructor
+	Hash(const Hash & rhs) 
+	{
+		this->linkedList = rhs.linkedList;
+		this->numBuckets = rhs.numBuckets;
+		this->numElements = rhs.numElements;
+	}
+
+	// destructor
+	~Hash() { /*clear();*/ }
+
+	// Returns the number of elements in the Hash
+	int  size() const { return numElements; }   // BinaryNode class needs a size function
+
+	// determine if the hash is empty
+	bool empty() const { return numElements == 0; }
+
+	// capacity(): Returns the number of buckets in the Hash
+	int capacity()const { return numBuckets; }
+
+	// clear all the contents of the hash
+	// void clear() { delete linkedList; }
+
+	// find(): The parameter is the value to be found. Returns 
+	// true if the value is found, false otherwise.
+	bool find(T & t)
+	{
+		for (int i = 0; i < numBuckets; i++)
+		{
+			if (linkedList[i].size() == 0)
+				continue;
+			T temp = linkedList[i].front();
+			if (temp == t)
+				return true;
+		}
+		return false;
+	}
+
+
+	// operator=: Assignment operator. Copy one Hash into another. 
+	// If there is insufficient memory to allocate a new buffer, then 
+	// the following exception is thrown:
+	// ERROR: Unable to allocate memory for the hash.
+	Hash <T> & operator = (const Hash <T> & rhs)
+	{
+		this->linkedList = rhs.linkedList;
+		this->numBuckets = rhs.numBuckets;
+		this->numElements = rhs.numElements;
+		return *this;
+	}
+
+	// insert(): Places a new instance of a value in the Hash. The 
+	// parameter is the item to be inserted; there is no return value.
+	void insert(const T & t)
+	{
+		int index = hash(t);
+		/*List <T> tempList = linkedList[index];
+		tempList.push_back(t);
+		linkedList[index] = tempList;*/
+		linkedList[index].push_back(t);
+		numElements++;
+	}
+
+	// hash(): This is a pure virtual function taking an element as a 
+	// parameter and returning an index into the underlying array
+	virtual int hash(const T & t) const = 0;
+
+private:
+
+	// member variables
+	List <T> * linkedList;
+	int numElements; // size()
+	int numBuckets; // capacity()
+};
+
+//template <class T>
+//Hash <T> & Hash <T> :: operator = (const Hash <T> & rhs)
+//{
+//	this->linkedList = rhs.linkedList;
+//	this->numBuckets = rhs.numBuckets;
+//	this->numElements = rhs.numElements;
+//}
+
+#endif // HASH_Hlist.h0000600003530400007650000003200412740561014012011 0ustar  cs235s3g5student/***********************************************************************
+* Header:
+* LIST
+* Summary:
+* This will contain the class definition of:
+* List : A class that represents a List
+* ListIterator : An interator through List
+* Author
+* Br. Helfrich
+************************************************************************/
+
+#ifndef LIST_H
+#define LIST_H
+#include <cassert> // for ASSERT
+#include <iostream> // for NULL
+
+/*************************************************
+* NODE
+* the node class. Since we do not validate any
+* of the setters, there is no point in making them
+* private. This is the case because only the
+* List class can make validation decisions
+*************************************************/
+
+template <class T>
+class Node
+{
+public:
+
+	// default constructor: set pointers to NULL. This is the only reason
+	// why Node is not a structure
+	Node() : pNext(NULL), pPrev(NULL), data() {}
+
+	// non-default. Initialize data as we create the node
+	Node(const T & data) : pNext(NULL), pPrev(NULL), data(data) {}
+
+	T data; // user data
+
+	Node <T> * pNext; // pointer to next node
+
+	Node <T> * pPrev; // pointer to previous node
+
+};
+
+// forward declaration for ListIterator. This will work for
+// both the forward iterator and the reverse iterator
+template <class T>
+class ListIterator;
+
+// we need a constant iterator also even though it is so redundant
+template <class T>
+class ListConstIterator;
+
+/**************************************************
+* LIST
+* Generic linked list class. Supports the following:
+* = : copy one list onto another
+* ERASE : empty the list
+* EMPTY : is the list currently empty?
+* PUSH_BACK : add an item to the tail
+* PUSH_FRONT : add an item to the head of the list
+* BACK : returns the last element in the list
+* FRONT : returns the first element in the list
+* INSERT : add an item to a location somewhere in the middle
+* iterators : forward and backward iterators, const and non-const
+**************************************************/
+
+template <class T>
+class List
+{
+public:
+
+	// constructors, destructores, and assignment operator
+	List() : numItems(0), pHead(NULL), pTail(NULL) {}
+
+	List(const List <T> & rhs) throw (const char *) :
+
+	pHead(NULL), pTail(NULL), numItems(0) { *this = rhs; }
+
+	~List() { clear(); }
+
+	List <T> & operator = (const List <T> & rhs) throw (const char *);
+
+	// standard container interfaces
+	void clear();
+
+	bool empty() const { return (pHead == NULL); }
+
+	int size() const { return numItems; }
+
+	// list-specific interfaces
+	void push_back (const T & data) throw (const char *);
+	
+	void push_front(const T & data) throw (const char *);
+	
+	T & back() throw (const char *);
+	
+	T & front() const throw (const char *);
+
+	ListIterator <T> insert(ListIterator <T> & it, const T & data) throw (const char *);
+
+	ListIterator <T> remove(ListIterator <T> & it) throw (const char *);
+
+
+	// iterator stuff
+
+	ListIterator <T> begin() { return ListIterator <T> (pHead); }
+
+	ListIterator <T> end() { return ListIterator <T> (NULL); }
+
+	ListIterator <T> rbegin() { return ListIterator <T> (pTail); }
+
+	ListIterator <T> rend() { return ListIterator <T> (NULL); }
+
+	// constant iterator stuff
+
+	ListConstIterator<T>cbegin() const { return ListConstIterator<T>(pHead); }
+
+	ListConstIterator<T>cend() const { return ListConstIterator<T>(NULL); }
+
+	ListConstIterator<T>crbegin() const { return ListConstIterator<T>(pTail); }
+
+	ListConstIterator<T>crend() const { return ListConstIterator<T>(NULL); }
+
+private:
+
+	int numItems;
+	Node <T> * pHead; // pointer to the beginning of the list
+	Node <T> * pTail; // pointer to the ending of the list
+
+};
+
+/*************************************************
+
+* LIST ITERATOR
+
+* Iterate through a List, non-constant version
+
+************************************************/
+
+template <class T>
+class ListIterator
+{
+
+public:
+
+	// default constructor: not pointing to anything
+	ListIterator() : p(NULL) {}
+
+	// non-default constrictor taking a pointer as a parameter
+	ListIterator(Node <T> * p) : p(p) {}
+
+	// copy constructor
+	ListIterator(const ListIterator <T> & rhs) : p(rhs.p) {}
+
+	// assignment operator
+	ListIterator <T> & operator = (const ListIterator <T> & rhs)
+	{
+		p = rhs.p;
+		return *this;
+	}
+
+	// dereference operator, fetch a node
+	T & operator * () throw (const char *)
+	{
+		if (p)
+			return p->data;
+		else
+			throw "ERROR: Trying to dereference a NULL pointer";
+	}
+
+	// equals operator: are the iterators the same?
+	bool operator == (const ListIterator <T> & rhs) const
+	{
+		return rhs.p == this->p;
+	}
+
+	// not-equals operator: are the iterators different?
+	bool operator != (const ListIterator <T> & rhs) const
+	{
+		return rhs.p != this->p;
+	}
+
+	// postfix increment
+	ListIterator <T> operator ++ (int postfix)
+	{
+		ListIterator <T> old(*this);
+		assert(p);
+		p = p->pNext;
+		return old;
+	}
+
+	// prefix increment
+	ListIterator <T> & operator ++ ()
+	{
+		assert(p);
+		p = p->pNext;
+		return *this;
+	}
+
+	// postfix decrement
+	ListIterator <T> operator -- (int postfix)
+	{
+		ListIterator <T> old(*this);
+		assert(p);
+		p = p->pPrev;
+		return old;
+	}
+
+	// prefix decrement
+	ListIterator <T> & operator -- ()
+	{
+		assert(p);
+		p = p->pPrev;
+		return *this;
+	}
+
+	// two friends who need to access p directly
+	friend ListIterator <T> List <T> :: insert(ListIterator <T> & it, const T & data) throw (const char *);
+
+	friend ListIterator <T> List <T> :: remove(ListIterator <T> & it) throw (const char *);
+
+private:
+
+	Node <T> * p;
+};
+
+/*************************************************
+* LIST CONST ITERATOR
+* Iterate through a List, the constant version
+************************************************/
+
+template <class T>
+class ListConstIterator
+{
+public:
+
+	// default constructor: not pointing to anything
+	ListConstIterator() : p(NULL) {}
+
+	// non-default constrictor taking a pointer as a parameter
+	ListConstIterator(const Node <T> * p) : p(p) {}
+
+	// copy constructor
+	ListConstIterator(const ListConstIterator <T> & rhs) : p(rhs.p) {}
+
+	// assignment operator
+	ListConstIterator <T> & operator = (const ListConstIterator <T> & rhs)
+	{
+		p = rhs.p;
+		return *this;
+	}
+
+	// dereference operator, fetch a node
+	// this is the only real difference between ListConstIterator and the other
+	T operator * () const { return p->data; }
+	
+	// equals operator: are the iterators the same?
+	bool operator == (const ListConstIterator <T> & rhs) const
+	{
+		return rhs.p == this->p;
+	}
+
+	// not-equals operator: are the iterators different?
+	bool operator != (const ListConstIterator <T> & rhs) const
+	{
+		return rhs.p != this->p;
+	}
+
+	// postfix increment
+	ListConstIterator <T> operator ++ (int postfix)
+	{
+		ListConstIterator <T> old(*this);
+		assert(p);
+		p = p->pNext;
+		return old;
+	}
+
+	// prefix increment
+	ListConstIterator <T> & operator ++ ()
+	{
+		assert(p);
+		p = p->pNext;
+		return *this;
+	}
+
+	// postfix decrement
+	ListConstIterator <T> operator -- (int postfix)
+	{
+		ListConstIterator <T> old(*this);
+		assert(p);
+		p = p->pPrev;
+		return old;
+	}
+
+	// prefix decrement
+	ListConstIterator <T> & operator -- ()
+	{
+		assert(p);
+		p = p->pPrev;
+		return *this;
+	}
+
+private:
+
+	const Node <T> * p;
+};
+
+/**********************************************
+* LIST :: assignment operator
+* Copy one list onto another
+* INPUT : a list to be copied
+* OUTPUT :
+* COST : O(n) with respect to the number of nodes
+*********************************************/
+
+template <class T>
+List <T> & List <T> :: operator = (const List <T> & rhs) throw (const char *)
+{
+	// erase all the existing elements
+	clear();
+
+	// now allocate the new nodes
+	for (Node <T> * p = rhs.pHead; p; p = p->pNext)
+		push_back(p->data); // this could throw
+
+	// return the new buffer
+	return *this;
+}
+
+/**********************************************
+* LIST :: CLEAR
+* Remove all the items currently in the linked list
+* INPUT :
+* OUTPUT :
+* COST : O(n) with respect to the number of nodes
+*********************************************/
+
+template <class T>
+void List <T> :: clear()
+{
+
+	// loop through the entire list, removing everything
+	Node <T> * pNext;
+	for (Node <T> * p = pHead; p; p = pNext)
+	{
+		pNext = p->pNext;
+		delete p;
+	}
+
+	pHead = pTail = NULL;
+	numItems = 0;
+}
+
+/*********************************************
+* LIST :: PUSH BACK
+* add an item to the end of the list
+* INPUT : data to be added to the list
+* OUTPUT :
+* COST : O(1)
+*********************************************/
+
+template <class T>
+void List <T> :: push_back(const T & data) throw (const char *)
+{
+
+	try
+	{
+
+		// create the node
+		Node <T> * pNew = new Node <T> (data);
+
+		// point it to the old tail
+		pNew->pPrev = pTail;
+
+		// now point tail to the new guy
+		if (pTail != NULL)
+			pTail->pNext = pNew;
+		else
+			pHead = pNew; // there is no tail so there is no head!
+	
+		// finally, this is the new tail
+		pTail = pNew;
+		numItems++;
+	}
+
+	catch (...)
+	{
+		throw "ERROR: unable to allocate a new node for a list";
+	}
+}
+
+/*********************************************
+* LIST :: PUSH FRONT
+* add an item to the head of the list
+* INPUT : data to be added to the list
+* OUTPUT :
+* COST : O(1)
+*********************************************/
+
+template <class T>
+void List <T> :: push_front(const T & data) throw (const char *)
+{
+
+	try
+	{
+
+	// create the node
+	Node <T> * pNew = new Node <T> (data);
+
+	// point it to the old head
+	pNew->pNext = pHead;
+
+	// now point head to the new guy
+	if (pHead != NULL)
+		pHead->pPrev = pNew;
+	else
+		pTail = pNew; // there is no head so there is no tail!
+
+	// finally, this is the new head
+	pHead = pNew;
+	numItems++;
+}
+
+	catch (...)
+	{
+		throw "ERROR: unable to allocate a new node for a list";
+	}
+}
+
+/*********************************************
+* LIST :: FRONT
+* retrieves the first element in the list
+* INPUT :
+* OUTPUT : data to be displayed
+* COST : O(1)
+*********************************************/
+
+template <class T>
+T & List <T> :: front() const throw (const char *)
+{
+	if (pHead != NULL)
+		return pHead->data;
+	else
+		throw "ERROR: unable to access data from an empty list";
+}
+
+/*********************************************
+* LIST :: BACK
+* retrieves the last element in the list
+* INPUT :
+* OUTPUT : data to be displayed
+* COST : O(1)
+*********************************************/
+
+template <class T>
+T & List <T> :: back() throw (const char *)
+{
+	if (pHead != NULL)
+		return pTail->data;
+	else
+		throw "ERROR: unable to access data from an empty list";
+}
+
+/******************************************
+* LIST :: REMOVE
+* remove an item from the middle of the list
+* INPUT : an iterator to the item being removed
+* OUTPUT : iterator to the new location
+* COST : O(1)
+******************************************/
+
+template <class T>
+ListIterator <T> List <T> :: remove(ListIterator <T> & it) throw (const char *)
+{
+	ListIterator <T> itNext = end();
+
+	// invalid iterator case
+	if (it == end())
+		throw "ERROR: unable to remove from an invalid location in a list";
+	
+	assert(pHead && pTail);
+
+	// fixup everything after the current location
+	if (it.p->pNext) // not the last element
+	{
+		it.p->pNext->pPrev = it.p->pPrev;
+		itNext = it.p->pNext;
+	}
+
+	else // are the last element
+		pTail = pTail->pPrev;
+
+	// fixup everything before the current location
+	if (it.p->pPrev) // not the first element
+		it.p->pPrev->pNext = it.p->pNext;
+	else
+		pHead = pHead->pNext;
+
+	// delete self and return
+	delete it.p;
+	numItems--;
+	return itNext;
+}
+
+/******************************************
+* LIST :: INSERT
+* add an item to the middle of the list
+* INPUT : data to be added to the list
+* an iterator to the location where it is to be inserted
+* OUTPUT : iterator to the new item
+* COST : O(1)
+******************************************/
+
+template <class T>
+ListIterator <T> List <T> :: insert(ListIterator <T> & it, const T & data) throw (const char *)
+{
+
+	// empty list case
+	if (pHead == NULL)
+	{
+		assert(pTail == NULL);
+		pHead = pTail = new Node <T> (data);
+		return begin();
+	}
+
+	// make sure pHead and pTail are correctly set
+	assert(pTail && pHead);
+	assert(pHead->pPrev == NULL);
+	assert(pTail->pNext == NULL);
+	
+	try
+	{
+
+		Node <T> * pNew = new Node <T> (data);
+		
+		// end of list case
+		if (it == end())
+		{
+
+		// update pTail as appropriate
+		pTail->pNext = pNew;
+		pNew->pPrev = pTail;
+		pTail = pNew;
+
+		// update the iterator
+		it = pNew;
+		}
+
+		// otherwise we have a valid iterator
+		else
+		{
+		
+			// set pNext and pPrev
+			pNew->pPrev = it.p->pPrev;
+			pNew->pNext = it.p;
+			
+			// update who pNext and pPrev point to
+			if (pNew->pPrev)
+				pNew->pPrev->pNext = pNew;
+			else
+				pHead = pNew;
+
+			if (pNew->pNext)
+				pNew->pNext->pPrev = pNew;
+			else
+				pTail = pNew;
+			it = pNew;
+		}
+			
+		numItems++;
+	}
+
+	catch (...)
+	{
+		throw "ERROR: unable to allocate a new node for a list";
+	}
+
+	return it;
+}
+
+#endif // LIST_HspellCheck.h0000600003530400007650000000063112740561014013114 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 12, Spell Check
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    This program will implement the spellCheck() function
+ ************************************************************************/
+
+#ifndef SPELL_CHECK_H
+#define SPELL_CHECK_H
+
+void spellCheck();
+
+#endif // SPELL_CHECK_H
+spellCheck.cpp0000600003530400007650000000603212741110762013451 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 12, Spell Check
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    John Vehikite, Tiffany Gohnert
+ * Summary:
+ *    This program will implement the spellCheck() function
+ ************************************************************************/
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <string.h>
+#include <stdio.h>
+#include <algorithm>    // std::remove_if
+#include "spellCheck.h"
+#include "hash.h"
+using namespace std;
+
+
+/****************************************
+ * F HASH
+ * A hash string
+ ****************************************/
+class FHash : public Hash <string>
+{
+public:
+   FHash(int numBuckets, float min, float max) throw (const char *) :
+         Hash <string> (numBuckets), min(min), max(max)  {}
+   FHash(const FHash & rhs) throw (const char *) :
+         Hash <string> (rhs), min(rhs.min), max(rhs.max) {}
+
+   // hash function for strings will add up all the ASCII values
+   int hash(const string & value) const
+   {
+	   return 0;
+   }
+private:
+   float min;
+   float max;
+};
+
+
+
+
+void upToLow(string & str);
+void removePunct(string & str);
+
+/*****************************************
+ * SPELL CHECK
+ * Prompt the user for a file to spell-check
+ ****************************************/
+
+ void spellCheck()
+{
+FHash h(10 /*capacity*/, 1.0 /*min*/, 10.0 /*max*/);
+//Hash <string> h; 
+	string currWord;
+	string word;
+	int countMisspelled = 0;
+	int countCorrect = 0;
+
+	//Get input from the dictionary
+	ifstream dictionary("dictionary.txt");
+
+	//File checking
+	if (dictionary.fail())
+	{
+		cout << "File does not exist" << endl;
+		cout << "Exit program" << endl;
+	}
+
+    //Create the dictionary as a hash table
+    while(dictionary >> currWord)
+    {
+    	h.insert(currWord);
+    }
+    dictionary.close();
+
+    //Get input from the user
+    ifstream input;
+	string fileName; 
+	
+	//prompt user
+	cout <<  "What file do you want to check?" << endl; 
+	cin >> fileName; 
+
+	//open the file
+	input.open(fileName.c_str()); 
+
+	//File checking
+	if (input.fail())
+	{
+		cout << "Error opening file" << endl;
+	}
+
+
+	//If a word is not in the dictionary assume misspelled
+	while(input >> word)
+	{
+		removePunct(word);
+		upToLow(word);
+		
+		
+		//if it can't find the word in the dictionary then it's misspelled
+		//find?
+		
+		if (h.find(word) ==false)
+		
+		{
+		
+		countMisspelled++; // Increment misspelled words count
+			
+		}
+		else
+		{
+			countCorrect++; // Increment correct words count
+		}
+	}
+	input.close();
+
+	if (countMisspelled >= 1)
+	{
+	cout << "Number of misspelled words : " << countMisspelled << endl;}
+	else
+	{cout << "File contains no spelling errors" << countCorrect << endl;}
+
+	
+}
+
+
+/*Function to convert uppercase letters to lowercase*/
+void upToLow(string & str)
+{
+	for (unsigned int i = 0; i < strlen(str.c_str()); i++)
+		 if (str[i] >= 0x41 && str[i] <= 0x5A)
+			  str[i] = str[i] + 0x20;
+}
+
+
+/*Function to remove punctuation from string*/
+void removePunct(string & str)
+{
+	str.erase(remove_if(str.begin(), str.end(), static_cast<int(*)(int)>(&ispunct)),str.end());
+}
+week12.cpp0000600003530400007650000002320612741110514012467 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 12, Hash
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise the Hash class.  When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>      // for CIN and COUT
+#include <string>        // for STRING
+#include "hash.h"        // for Hash class which should be in hash.h
+#include "spellCheck.h"  // for the spellCheck prototype
+using namespace std;
+
+
+// prototypes for our four test functions
+void testSimple();
+void testAdd();
+void testCopy();
+void testQuery();
+
+// To get your program to compile, you might need to comment out a few
+// of these. The idea is to help you avoid too many compile errors at once.
+// I suggest first commenting out all of these tests, then try to use only
+// TEST1.  Then, when TEST1 works, try TEST2 and so on.
+#define TEST1   // for testSimple()
+#define TEST2   // for testAdd()
+#define TEST3   // for testCopy()
+#define TEST4   // for testQuery()
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu
+   cout << "Select the test you want to run:\n";
+   cout << "\t1. Just create and destroy a hash\n";
+   cout << "\t2. The above plus add a few entries\n";
+   cout << "\t3. The above plus copy a hash table\n";
+   cout << "\t4. The above plus look for the entries\n";
+   cout << "\ta. Spell check\n";
+
+   // select
+   char choice;
+   cout << "> ";
+   cin  >> choice;
+   switch (choice)
+   {
+      case 'a':
+         spellCheck();
+         break;
+      case '1':
+         testSimple();
+         cout << "Test 1 complete\n";
+         break;
+      case '2':
+         testAdd();
+         cout << "Test 2 complete\n";
+         break;
+      case '3':
+         testCopy();
+         cout << "Test 3 complete\n";
+         break;
+      case '4':
+         testQuery();
+         cout << "Test 4 complete\n";
+         break;
+      default:
+         cout << "Unrecognized command, exiting...\n";
+   }
+
+   return 0;
+}
+
+/****************************************
+ * I HASH
+ * A simple hash of integers
+ ****************************************/
+class IHash : public Hash <int>
+{
+public:
+   IHash(int numBuckets)    throw (const char *) : Hash <int> (numBuckets) {}
+   IHash(const IHash & rhs) throw (const char *) : Hash <int> (rhs)        {}
+
+   // hash function for integers is simply to take the modulous
+   int hash(const int & value) const
+   {
+      return value % capacity();
+   }
+};
+
+/****************************************
+ * F HASH
+ * A hash of Floating Point numbers
+ ****************************************/
+class FHash : public Hash <float>
+{
+public:
+   FHash(int numBuckets, float min, float max) throw (const char *) :
+         Hash <float> (numBuckets), min(min), max(max)  {}
+   FHash(const FHash & rhs) throw (const char *) :
+         Hash <float> (rhs), min(rhs.min), max(rhs.max) {}
+
+   // hash function for strings will add up all the ASCII values
+   int hash(const float & value) const
+   {
+      return (int)((value - min) / (max - min) * capacity()) % capacity();
+   }
+private:
+   float min;
+   float max;
+};
+
+/*******************************************
+ * TEST SIMPLE
+ * Very simple test for a Hash: create and destroy
+ ******************************************/
+void testSimple()
+{
+#ifdef TEST1
+   try
+   {
+      // Test 1.a: bool Set
+      cout << "Create an integer Hash\n";
+      IHash h1(5);
+      cout << "\tSize:     " << h1.size()                   << endl;
+      cout << "\tCapacity: " << h1.capacity()               << endl;
+      cout << "\tEmpty?    " << (h1.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.b: float Hash
+      cout << "Create a float Hash\n";
+      FHash h2(10 /*capacity*/, 1.0 /*min*/, 10.0 /*max*/);
+      cout << "\tSize:     " << h2.size()                   << endl;
+      cout << "\tCapacity: " << h2.capacity()               << endl;
+      cout << "\tEmpty?    " << (h2.empty() ? "Yes" : "No") << endl;
+
+      // Test 1.c: copy the Hash using the copy constructor
+      {
+         cout << "Create a float Hash using the copy constructor\n";
+         FHash h3(h2);
+         cout << "\tSize:     " << h3.size()                   << endl;
+         cout << "\tCapacity: " << h3.capacity()               << endl;
+         cout << "\tEmpty?    " << (h3.empty() ? "Yes" : "No") << endl;
+      }
+
+      // Test 1.d: copy the Hash using the assignment operator
+      cout << "Create a float Hash using the assignment operator\n";
+      FHash h4(10, 1.0, 10.0);
+      h4 = h2;
+      cout << "\tSize:     " << h4.size()                   << endl;
+      cout << "\tCapacity: " << h4.capacity()               << endl;
+      cout << "\tEmpty?    " << (h4.empty() ? "Yes" : "No") << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif //TEST1
+}
+
+/*******************************************
+ * TEST ADD
+ * Add a few elements to our Hash
+ *****************************************/
+void testAdd()
+{
+#ifdef TEST2
+   try
+   {
+      // create
+      cout << "Create a small integer hash\n";
+      IHash h(10);
+      cout << "\tSize:     " << h.size()                   << endl;
+      cout << "\tCapacity: " << h.capacity()               << endl;
+      cout << "\tEmpty?    " << (h.empty() ? "Yes" : "No") << endl;
+
+      // fill
+      cout << "Fill with 12 values\n";
+      h.insert(213);  // h[0] -->
+      h.insert(431);  // h[1] --> 431 --> 991 --> 101 --> 111
+      h.insert(534);  // h[2] --> 452 --> 982
+      h.insert(452);  // h[3] --> 213 --> 123
+      h.insert(123);  // h[4] --> 534
+      h.insert(991);  // h[5] --> 005
+      h.insert(982);  // h[6] --> 626
+      h.insert(626);  // h[7] -->
+      h.insert(408);  // h[8] --> 408
+      h.insert(101);  // h[9] -->
+      h.insert(111);
+      h.insert(005);
+      cout << "\tSize:     " << h.size()                   << endl;
+      cout << "\tCapacity: " << h.capacity()               << endl;
+      cout << "\tEmpty?    " << (h.empty() ? "Yes" : "No") << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST2   
+}
+
+/*******************************************
+ * TEST COPY
+ * Create a few Hashes and copy them into each other
+ ******************************************/
+void testCopy()
+{
+#ifdef TEST3
+   try
+   {
+      // create a hash of capacity 25 but 100 items in it
+      cout << "A hash of 25 buckets\n";
+      IHash h1(25);
+      for (int i = 0; i < 100; i++)
+         h1.insert(i);
+      cout << "\tEmpty?    " << (h1.empty() ? "yes" : "no") << endl;
+      cout << "\tSize:     " << h1.size()                   << endl;
+      cout << "\tCapacity: " << h1.capacity()               << endl;
+   
+      // use the copy constructor
+      cout << "Copy the hash into another\n";
+      IHash h2(h1);
+      cout << "\tEmpty?    " << (h2.empty() ? "yes" : "no") << endl;
+      cout << "\tSize:     " << h2.size()                   << endl;
+      cout << "\tCapacity: " << h2.capacity()               << endl;
+
+      // create a hash of 10 items and assign h1 into it
+      cout << "Create a hash of 5 buckets\n";
+      IHash h3(5);
+      cout << "\tEmpty?    " << (h3.empty() ? "yes" : "no") << endl;
+      cout << "\tSize:     " << h3.size()                   << endl;
+      cout << "\tCapacity: " << h3.capacity()               << endl;
+
+      // copy the large hash into this smaller one
+      cout << "Copy the large hash of 25 buckets into the small one of 5\n";
+      h3 = h1;         // notice the different number of buckets
+      h1.insert(100);  // these should not influence h3 in any way
+      h1.insert(200);
+      cout << "\tEmpty?    " << (h3.empty() ? "yes" : "no") << endl;
+      cout << "\tSize:     " << h3.size()                   << endl;
+      cout << "\tCapacity: " << h3.capacity()               << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST3
+}
+
+/*******************************************
+ * TEST QUERY
+ * Prompt the user for items to put in the hash
+ * and then allow the user to query for items
+ *******************************************/
+void testQuery()
+{
+#ifdef TEST4
+   try
+   {
+      cout << "Test adding and querying numbers (0.0 - 100.0) from the hash:\n";
+      cout << "  +5.5   Put 5.5 into the hash\n";
+      cout << "  ?5.5   Determine if 5.5 is in the hash\n";
+      cout << "  !      Display the size and capacity of the hash\n";
+      cout << "  #      Quit\n";
+
+      // create the hash
+      FHash h(10, 0.0, 100.0);
+   
+      // interact
+      char instruction;
+      float number;
+      do
+      {
+         cout << "> ";
+         cin  >> instruction;
+         switch (instruction)
+         {
+            case '+':
+               cin >> number;
+               h.insert(number);
+               break;
+            case '?':
+               cin >> number;
+               cout << '\t'
+                    << (h.find(number) ? "Found!" : "Not found.")
+                    << endl;
+               break;
+            case '!':
+               cout << "\tSize:     " << h.size()                   << endl;
+               cout << "\tCapacity: " << h.capacity()               << endl;
+               cout << "\tEmpty?    " << (h.empty() ? "Yes" : "No") << endl;
+               break;
+            case '#':
+               break;
+            default:
+               cout << "Invalid command\n";
+         }
+      }
+      while (instruction != '#');
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST4
+}
+
+makefile0000600003530400007650000000175512741111276012400 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 12, Hash
+#     Brother JonesL, CS235
+# Author:
+#     John Vehikite, Tiffany Gohnert
+# Summary:
+#     This program simulates the std hash class.
+# Most difficult part:
+#     spellCheck.cpp really gave us a challenge.
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: week12.o spellCheck.o
+	g++ -o a.out week12.o spellCheck.o -g
+	tar -cf week12.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      week12.o     : the driver program
+#      spellCheck.o   : the spell-check program and driver
+##############################################################
+week12.o: hash.h week12.cpp list.h
+	g++ -c week12.cpp -g
+
+spellCheck.o: hash.h spellCheck.h spellCheck.cpp
+	g++ -c spellCheck.cpp -g
+
