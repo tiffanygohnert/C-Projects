@@ -5,4 +5,26 @@
 
 Calendar: This is a simple budget calendar
 
-All week tar files are C++ projects dealing with Data Structures such as Linked-list, Stack, Heap, Graph, Array, Vector, etc. 
+Stack 
+
+Queue
+
+Deque
+
+Set
+
+Linked List
+
+List
+
+Binary Tree
+
+BST
+
+Map
+
+Sorting
+
+Hash
+
+Graph
