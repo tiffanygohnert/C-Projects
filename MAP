@@ -1,0 +1,2136 @@
+bnode.h0000600003530400007650000001243012733303145012127 0ustar  cs235s3g5student#ifndef  BNODE_H
+#define BNODE_H
+#include <cassert>
+#include <iostream>
+
+using namespace std;
+
+//node class
+template <class T>
+class BinaryNode
+{
+
+public:
+	//default constructor
+	BinaryNode() : pRight(NULL), pLeft(NULL), pParent(NULL), data(0x00000000)/*, numItems(1)*/ {}
+
+	//non-default constructor 
+	BinaryNode(const T & t) : pRight(NULL), pLeft(NULL), pParent(NULL), data(t)/*, numItems(1)*/ {} /*throw (const char *)*/
+
+	void addLeft(const T & t)
+	{
+		BinaryNode <T> * tempBNode = new BinaryNode <T>(t);
+		this->pLeft = tempBNode;
+		tempBNode->pParent = this;
+		//numItems++;
+	}
+
+	void addLeft(BinaryNode <T> * bNode)
+	{
+		if (!bNode)
+		{
+			this->pLeft = NULL;
+			return;
+		}
+		this->pLeft = bNode;
+		bNode->pParent = this;
+		//numItems++;
+	}
+
+	void addRight(const T & t)
+	{
+		BinaryNode <T> * tempBNode = new BinaryNode <T>(t);
+		this->pRight = tempBNode;
+		tempBNode->pParent = this;
+		//numItems++;
+	}
+
+	void addRight(BinaryNode <T> * bNode)
+	{
+		if (!bNode)
+		{
+			this->pRight = NULL;
+			return;
+		}
+		this->pRight = bNode;
+		bNode->pParent = this;
+		//numItems++;
+	}
+
+	int size() const
+	{
+		if (this == NULL)
+			return 0;
+		else
+		{
+			int count = 1;
+			count += this->pLeft->size();
+			count += this->pRight->size();
+			return count;
+		}
+	}
+
+	/*int countNodes(BinaryNode <T> * bNode)
+	{
+	unsigned count = 0;
+	if (bNode->pLeft)
+	{
+	countNodes(bNode->pLeft);
+	if (bNode->pRight)
+	countNodes(bNode->pRight);
+	count++;
+	}
+	}*/
+
+	int findDepth() const;
+	void verifyRedBlack(int depth) const;
+	void verifyBTree() const;
+
+
+	// member variables 
+	BinaryNode <T> * pRight;
+	BinaryNode <T> * pLeft;
+	BinaryNode <T> * pParent;
+	T data;
+	//int numItems;
+};
+
+/*
+deleteBinaryTree(): Takes a BinaryNode as a parameter and
+deletes all the children and itself. This is a recursive
+function.
+*/
+template <class T>
+void deleteBinaryTree(BinaryNode <T> * &bNode)
+{
+	if (bNode->pLeft)
+	{
+		deleteBinaryTree(bNode->pLeft);
+		if (bNode->pRight)
+			deleteBinaryTree(bNode->pRight);
+		delete bNode;
+		bNode = NULL;
+	}
+}
+
+/*
+Insertion operator: Takes a constant BinaryNode * as a
+parameter and displays the tree under the passed parameter.
+This is a recursive function traversing the tree in infix
+order. A single space will be displayed after every element.
+*/
+
+template <class T>
+ostream & operator << (ostream & out, BinaryNode <T> * rhs)
+{
+	// prints R, L, R, LL, LR, RL, RR... incorrect
+	/*if (rhs != NULL)
+	{
+	out << rhs->data << " ";
+	out << (rhs->pLeft);
+	out << (rhs->pRight);
+	}
+	return out;*/
+
+	// Postorder
+	//if (rhs != NULL)
+	//{
+	//	out << (rhs->pLeft);
+	//	//out << rhs->data << " ";
+	//	out << (rhs->pRight);
+	//	out << rhs->data << " ";
+	//}
+	//return out;
+
+	// Inorder!! YAY!
+	if (rhs != NULL)
+	{
+		out << (rhs->pLeft);
+		out << rhs->data << " ";
+		out << (rhs->pRight);
+		//out << rhs->data << " ";
+	}
+	return out;
+}
+
+///****************************************************
+//* BINARY NODE :: FIND DEPTH
+//* Find the depth of the black nodes. This is useful for
+//* verifying that a given red-black tree is valid
+//* Author: Br. Helfrich
+//****************************************************/
+//template <class T>
+//int BinaryNode <T> ::findDepth() const
+//{
+//	// if there are no children, the depth is ourselves
+//	if (pRight == NULL && pLeft == NULL)
+//		return (isRed ? 0 : 1);
+//
+//	// if there is a right child, go that way
+//	if (pRight != NULL)
+//		return (isRed ? 0 : 1) + pRight->findDepth();
+//	else
+//		return (isRed ? 0 : 1) + pLeft->findDepth();
+//}
+//
+///****************************************************
+//* BINARY NODE :: VERIFY RED BLACK
+//* Do all four red-black rules work here?
+//* Author: Br. Helfrich
+//***************************************************/
+//template <class T>
+//void BinaryNode <T> ::verifyRedBlack(int depth) const
+//{
+//	depth -= (isRed == false) ? 1 : 0;
+//
+//	// Rule a) Every node is either red or black
+//	assert(isRed == true || isRed == false); // this feels silly
+//
+//											 // Rule b) The root is black
+//	if (pParent == NULL)
+//		assert(isRed == false);
+//
+//	// Rule c) Red nodes have black children
+//	if (isRed == true)
+//	{
+//		if (pLeft != NULL)
+//			assert(pLeft->isRed == false);
+//		if (pRight != NULL)
+//			assert(pRight->isRed == false);
+//	}
+//
+//	// Rule d) Every path from a leaf to the root has the same # of black nodes
+//	if (pLeft == NULL && pRight && NULL)
+//		assert(depth == 0);
+//	if (pLeft != NULL)
+//		pLeft->verifyRedBlack(depth);
+//	if (pRight != NULL)
+//		pRight->verifyRedBlack(depth);
+//}
+//
+///******************************************************
+//* VERIFY B TREE
+//* Verify that the tree is correctly formed
+//* Author: Br. Helfrich
+//******************************************************/
+//template <class T>
+//void BinaryNode <T> ::verifyBTree() const
+//{
+//	// check parent
+//	if (pParent)
+//		assert(pParent->pLeft == this || pParent->pRight == this);
+//
+//	// check left
+//	if (pLeft)
+//	{
+//		assert(pLeft->data <= data);
+//		assert(pLeft->pParent == this);
+//		pLeft->verifyBTree();
+//	}
+//
+//	// check right
+//	if (pRight)
+//	{
+//		assert(pRight->data >= data);
+//		assert(pRight->pParent == this);
+//		pRight->verifyBTree();
+//	}
+//}
+//
+
+#endif
+
+bst.h0000600003530400007650000003107612733413535011644 0ustar  cs235s3g5student/***********************************************************************
+
+* Component:
+
+* Week 09, Binary Search Tree (BST)
+
+* Brother Helfrich, CS 235
+
+* Author:
+
+* Br. Helfrich
+
+* Summary:
+
+* Create a binary search tree
+
+************************************************************************/
+
+#ifndef BST_H
+
+#define BST_H
+
+#include "bnode.h" // for BinaryNode
+
+#include "stack.h" // for Stack
+
+// forward declaration for the BST iterator
+
+template <class T>
+
+class BSTIterator;
+
+/*****************************************************************
+
+* BINARY SEARCH TREE
+
+* Create a Binary Search Tree
+
+*****************************************************************/
+
+template <class T>
+
+class BST
+
+{
+
+public:
+
+	// constructors, destructor, assignment operator
+
+	BST() : root(NULL) { }
+
+	BST(const BST & rhs) throw (const char *);
+
+	~BST() { clear(); }
+
+	BST & operator = (const BST & rhs) throw (const char *);
+
+	// standard container interfaces
+
+	bool empty() const { return root == NULL; }
+
+	int size() const { return empty() ? 0 : root->size(); }
+
+	void clear()
+
+	{
+
+		if (root)
+
+			deleteBinaryTree(root);
+
+		assert(empty());
+
+	}
+
+	// BST specific interfaces
+
+	void insert(const T & t) throw (const char *);
+
+	void remove(BSTIterator <T> & it);
+
+	BSTIterator <T> find(const T & t);
+
+	// for debug purposes so we can validate the tree
+
+	BinaryNode <T> * getRoot() { return root; }
+
+	// iterators
+
+	BSTIterator <T> begin();
+
+	BSTIterator <T> end() { return BSTIterator <T>(NULL); }
+
+	BSTIterator <T> rbegin();
+
+	BSTIterator <T> rend() { return BSTIterator <T>(NULL); }
+
+//private:
+
+	// delete a single node from the tree
+
+	void deleteNode(BinaryNode <T> * & pDelete, bool toRight);
+
+	BinaryNode <T> * root;
+
+};
+
+/**********************************************************
+
+* BINARY SEARCH TREE ITERATOR
+
+* Forward and reverse iterator through a BST
+
+*********************************************************/
+
+template <class T>
+
+class BSTIterator
+
+{
+
+public:
+
+	// constructors and assignment
+
+	BSTIterator(BinaryNode <T> * p = NULL) { nodes.push(p); }
+
+	BSTIterator(Stack <BinaryNode <T> *> & s) { nodes = s; }
+
+	BSTIterator(const BSTIterator <T> & rhs) { nodes = rhs.nodes; }
+
+	BSTIterator <T> & operator = (const BSTIterator <T> & rhs)
+
+	{
+
+		// need an assignment operator for the Stack class.
+
+		nodes = rhs.nodes;
+
+	}
+
+	// compare
+
+	bool operator == (const BSTIterator <T> & rhs) const
+
+	{
+
+		// only need to compare the leaf node
+
+		return rhs.nodes.const_top() == nodes.const_top();
+
+	}
+
+	bool operator != (const BSTIterator <T> & rhs) const
+
+	{
+
+		// only need to compare the leaf node
+
+		return rhs.nodes.const_top() != nodes.const_top();
+
+	}
+
+	// de-reference. Cannot change because it will invalidate the BST
+
+	const T & operator * () const
+
+	{
+
+		return nodes.const_top()->data;
+
+	}
+
+	// iterators
+
+	BSTIterator <T> & operator ++ ();
+
+	BSTIterator <T> operator ++ (int postfix)
+
+	{
+
+		BSTIterator <T> itReturn = *this;
+
+		++(*this);
+
+		return itReturn;
+
+	}
+
+	BSTIterator <T> & operator -- ();
+
+	BSTIterator <T> operator -- (int postfix)
+
+	{
+
+		BSTIterator <T> itReturn = *this;
+
+		--(*this);
+
+		return itReturn;
+
+	}
+
+	// must give friend status to remove so it can call getNode() from it
+
+	friend void BST <T> ::remove(BSTIterator <T> & it);
+
+private:
+
+	// get the node pointer
+
+	BinaryNode <T> * getNode() { return nodes.top(); }
+
+	// the stack of nodes
+
+	Stack < BinaryNode <T> * > nodes;
+
+};
+
+
+
+/*****************************************************
+
+* BST :: BEGIN
+
+* Return the first node (left-most) in a binary search tree
+
+****************************************************/
+
+template <class T>
+
+BSTIterator <T> BST <T> ::begin()
+
+{
+
+	Stack < BinaryNode <T> * > nodes;
+
+	nodes.push(NULL);
+
+	nodes.push(root);
+
+	while (nodes.top() != NULL && nodes.top()->pLeft)
+
+		nodes.push(nodes.top()->pLeft);
+
+	return nodes;
+
+}
+
+/*****************************************************
+
+* BST :: RBEGIN
+
+* Return the last node (right-most) in a binary search tree
+
+****************************************************/
+
+template <class T>
+
+BSTIterator <T> BST <T> ::rbegin()
+
+{
+
+	Stack < BinaryNode <T> * > nodes;
+
+	nodes.push(NULL);
+
+	nodes.push(root);
+
+	while (nodes.top() != NULL && nodes.top()->pRight)
+
+		nodes.push(nodes.top()->pRight);
+
+	return nodes;
+
+}
+
+#ifdef DEBUG
+
+/**************************************************
+
+* BST :: VERIFY
+
+* Verify that the tree under the root is well-formed
+
+*************************************************/
+
+template <class T>
+
+void BST <T> ::verify() const
+
+{
+
+	// verify that every node is where it should be
+
+	root->verifyBTree();
+
+	// find the depth of the black nodes
+
+	int depth = root->findDepth();
+
+	// verify the red-black tree under here
+
+	root->verifyRedBlack(depth);
+
+}
+
+#endif // DEBUG
+
+/*********************************************
+
+* BST :: COPY CONSTRUCTOR
+
+* Copy one tree to another
+
+********************************************/
+
+template <class T>
+
+BST <T> ::BST(const BST <T> & rhs) throw (const char *) : root(NULL)
+
+{
+
+	*this = rhs;
+
+}
+
+/**********************************************
+
+* BST :: COPY
+
+* Make a copy of a binary search tree
+
+**********************************************/
+
+template <class T>
+
+BST <T> & BST <T> :: operator = (const BST <T> & rhs) throw (const char *)
+
+{
+
+	clear();
+
+	if (rhs.root != NULL)
+
+	{
+
+		try
+
+		{
+
+			this->root = new BinaryNode <T>(rhs.root->data);
+
+			//this->root->isRed = false;
+
+			//copyBinaryTree(rhs.root, this->root);
+
+		}
+
+		catch (...)
+
+		{
+
+			throw "ERROR: Unable to allocate a node";
+
+		}
+
+	}
+
+	return *this;
+
+}
+
+/*****************************************************
+
+* BST :: INSERT
+
+* Insert a node at a given location in the tree
+
+****************************************************/
+
+template <class T>
+
+void BST <T> ::insert(const T & t) throw (const char *)
+
+{
+
+	//debug(std::cerr << "===== insert(" << t << ") =====\n");
+
+	// if we are at a trivial state (empty tree), then create a new root
+
+	if (root == NULL)
+
+	{
+
+		root = new BinaryNode <T>(t);
+
+		//root->balance();
+
+		//debug(verify());
+
+		return;
+
+	}
+
+	//debug(std::cerr << "root:" << root->data << ' ');
+
+	// otherwise, go a searching for the correct spot
+
+	BinaryNode <T> * node = root;
+
+	bool done = false;
+
+	//debug(verify());
+
+	while (!done)
+
+	{
+
+		// if the center node is larger, go left
+
+		if (node->data > t)
+
+		{
+
+			// if there is a node to the left, follow it
+
+			if (node->pLeft)
+
+			{
+
+				//debug(std::cerr << "left->");
+
+				node = node->pLeft;
+
+			}
+
+			// if we are at the leaf, then create a new node
+
+			else
+
+			{
+
+				node->addLeft(t);
+
+				node = NULL;
+
+				done = true;
+
+			}
+
+		}
+
+		// if the center node is smaller, go right
+
+		else
+
+		{
+
+			// if there is a node to the right, follow it
+
+			if (node->pRight)
+
+			{
+
+				node = node->pRight;
+
+				//debug(std::cerr << "right->");
+
+			}
+
+			// if we are at the left, then create a new node.
+
+			else
+
+			{
+
+				node->addRight(t);
+
+				node = NULL;
+
+				done = true;
+
+			}
+
+		}
+
+	}
+
+	// the root might have shifted due to rotation
+
+	while (root->pParent != NULL)
+
+		root = root->pParent;
+
+	assert(root->pParent == NULL);
+
+	//debug(verify());
+
+}
+
+/*************************************************
+
+* BST :: REMOVE
+
+* Remove a given node as specified by the iterator
+
+************************************************/
+
+template <class T>
+
+void BST <T> ::remove(BSTIterator <T> & it)
+
+{
+
+	// find the node
+
+	BinaryNode <T> * pNode = it.getNode();
+
+	// do nothing if there is nothing to do
+
+	if (pNode == NULL)
+
+		return;
+
+	// if there is only one child (right) or no children (how sad!)
+
+	if (pNode->pLeft == NULL)
+
+		deleteNode(pNode, true /* goRight */);
+
+	// if there is only one child (left)
+
+	else if (pNode->pRight == NULL)
+
+		deleteNode(pNode, false /* goRight */);
+
+	// otherwise, swap places with the in-order successor
+
+	else
+
+	{
+
+		// find the in-order successor
+
+		BinaryNode <T> * pNodeIOS = pNode->pRight;
+
+		while (pNodeIOS->pLeft != NULL)
+
+			pNodeIOS = pNodeIOS->pLeft;
+
+		// copy its data
+
+		pNode->data = pNodeIOS->data;
+
+		// if there are any children under the in-order successor, fix them
+
+		assert(pNodeIOS->pLeft == NULL); // there cannot be a left child or
+
+										 // I would not be the IOS
+
+		deleteNode(pNodeIOS, true /*goRight*/);
+
+		// prepare for deletion
+
+		pNode = pNodeIOS;
+
+	}
+
+	delete pNode;
+
+}
+
+/****************************************************
+
+* DELETE NODE
+
+* Delete a single node (pDelete) from the tree indicated
+
+* by a node (pDelete).
+
+* pDelete the node to be deleted
+
+* toRight should the right branch inherit our place?
+
+****************************************************/
+
+template <class T>
+
+void BST <T> ::deleteNode(BinaryNode <T> * & pDelete, bool toRight)
+
+{
+
+	// shift everything up
+
+	BinaryNode <T> * pNext = (toRight ? pDelete->pRight : pDelete->pLeft);
+
+	// if we are not the parent, hook ourselves into the existing tree
+
+	if (pDelete != root)
+
+	{
+
+		if (pDelete->pParent->pLeft == pDelete)
+
+		{
+
+			pDelete->pParent->pLeft = NULL;
+
+			pDelete->pParent->addLeft(pNext);
+
+		}
+
+		else
+
+		{
+
+			pDelete->pParent->pRight = NULL;
+
+			pDelete->pParent->addRight(pNext);
+
+		}
+
+	}
+
+	// otherwise, the pNext is the new root
+
+	else
+
+	{
+
+		root = pNext;
+
+		pNext->pParent = NULL;
+
+	}
+
+}
+
+/****************************************************
+
+* BST :: FIND
+
+* Return the node corresponding to a given value
+
+****************************************************/
+
+template <class T>
+
+BSTIterator <T> BST <T> ::find(const T & t)
+
+{
+
+	Stack < BinaryNode <T> * > nodesFound;
+
+	nodesFound.push(root);
+
+	// non-recurive solution
+
+	while (nodesFound.top() != NULL)
+
+	{
+
+		if (nodesFound.top()->data == t)
+
+			return nodesFound;
+
+		if (nodesFound.top()->data > t)
+
+			nodesFound.push(nodesFound.top()->pLeft);
+
+		else
+
+			nodesFound.push(nodesFound.top()->pRight);
+
+	}
+
+	return BSTIterator <T>();
+
+}
+
+/**************************************************
+
+* BST ITERATOR :: INCREMENT PREFIX
+
+* advance by one
+
+*************************************************/
+
+template <class T>
+
+BSTIterator <T> & BSTIterator <T> :: operator ++ ()
+
+{
+
+	// do nothing if we have nothing
+
+	if (nodes.top() == NULL)
+
+		return *this;
+
+	// if there is a right node, take it
+
+	if (nodes.top()->pRight != NULL)
+
+	{
+
+		nodes.push(nodes.top()->pRight);
+
+		// there might be more left-most children
+
+		while (nodes.top()->pLeft)
+
+			nodes.push(nodes.top()->pLeft);
+
+		return *this;
+
+	}
+
+	// there are no right children, the left are done
+
+	assert(nodes.top()->pRight == NULL);
+
+	BinaryNode <T> * pSave = nodes.top();
+
+	nodes.pop();
+
+	// if the parent is the NULL, we are done!
+
+	if (NULL == nodes.top())
+
+		return *this;
+
+	// if we are the left-child, got to the parent.
+
+	if (pSave == nodes.top()->pLeft)
+
+		return *this;
+
+	// we are the right-child, go up as long as we are the right child!
+
+	while (nodes.top() != NULL && pSave == nodes.top()->pRight)
+
+	{
+
+		pSave = nodes.top();
+
+		nodes.pop();
+
+	}
+
+	return *this;
+
+}
+
+/**************************************************
+
+* BST ITERATOR :: DECREMENT PREFIX
+
+* advance by one
+
+*************************************************/
+
+template <class T>
+
+BSTIterator <T> & BSTIterator <T> :: operator -- ()
+
+{
+
+	// do nothing if we have nothing
+
+	if (nodes.top() == NULL)
+
+		return *this;
+
+	// if there is a left node, take it
+
+	if (nodes.top()->pLeft != NULL)
+
+	{
+
+		nodes.push(nodes.top()->pLeft);
+
+		// there might be more right-most children
+
+		while (nodes.top()->pRight)
+
+			nodes.push(nodes.top()->pRight);
+
+		return *this;
+
+	}
+
+	// there are no left children, the right are done
+
+	assert(nodes.top()->pLeft == NULL);
+
+	BinaryNode <T> * pSave = nodes.top();
+
+	nodes.pop();
+
+	// if the parent is the NULL, we are done!
+
+	if (NULL == nodes.top())
+
+		return *this;
+
+	// if we are the right-child, got to the parent.
+
+	if (pSave == nodes.top()->pRight)
+
+		return *this;
+
+	// we are the left-child, go up as long as we are the left child!
+
+	while (nodes.top() != NULL && pSave == nodes.top()->pLeft)
+
+	{
+
+		pSave = nodes.top();
+
+		nodes.pop();
+
+	}
+
+	return *this;
+
+}
+
+#endif // BST_Hmap.h0000600003530400007650000001020112734075237011620 0ustar  cs235s3g5student#ifndef _map_h
+#define _map_h
+
+#include <cstdlib>
+#include "stack.h"
+#include "bst.h"
+#include "pair.h"
+
+template <class K, class V>
+class MapIterator;
+
+//map class
+template <typename KeyType, typename ValueType>
+class Map {
+
+public:
+//default constructor
+	Map() {
+		root = NULL;
+		nodeCount = 0;
+		cmpp = new temp< less<KeyType> >(less<KeyType>());
+	}
+	//deconstructor
+	~Map() {
+		if (cmpp != NULL) delete cmpp;
+		//deleteTree(root);
+	}
+	//copy constructor
+	Map(const Map & src) {
+		deepCopy(src);
+	}
+	int size() const{
+		return nodeCount;
+	}
+	bool empty() const{
+		return nodeCount == 0;
+	}
+	void remove(const KeyType & key){
+		removeNode(root, key);
+	}
+	void clear(){
+		//deleteTree(root);
+		root = NULL;
+		nodeCount = 0;
+	}
+	ValueType & operator[](const KeyType & key){
+		bool dummy;
+		return *addNode(root, key, dummy);
+	}
+	ValueType operator[](const KeyType & key) const{
+		return get(key);
+	}
+	//maps = operator. Needed for week10.cpp
+	Map & operator=(const Map & src) {
+		if (this != &src) {
+			clear();
+			deepCopy(src);
+		}
+		return *this;
+	}
+	
+		// Map specific interfaces
+
+	Map find(const KeyType & key){}
+
+	// iterators
+
+	Map begin(){}
+
+	Map end() { return MapIterator <KeyType, ValueType>(NULL); }
+
+	// Iterates through the map entries and calls fn(key, value) for each one.
+	
+	void mapAll(void(*fn)(KeyType, ValueType)) const{mapAll(root, fn);}
+	void mapAll(void(*fn)(const KeyType &, const ValueType &)) const{mapAll(root, fn);}
+	template <typename FunctorType>
+	void mapAll(FunctorType fn) const{mapAll(root, fn);}
+
+
+private:
+
+	/* Constant definitions */
+
+	static const int BST_LEFT_HEAVY = -1;
+	static const int BST_IN_BALANCE = 0;
+	static const int BST_RIGHT_HEAVY = +1;
+
+	//nodes for binary tree
+
+	struct BSTNode {
+		KeyType key;             /* The key stored in this node         */
+		ValueType value;         /* The corresponding value             */
+		BSTNode *left;           /* Subtree containing all smaller keys */
+		BSTNode *right;          /* Subtree containing all larger keys  */
+		int bf;                  /* AVL balance factor                  */
+	};
+
+	//compactor class
+	class comp {
+	public:
+		virtual comp *clone() = 0;
+	};
+
+	template <typename ct>
+	class temp : public comp {
+	public:
+		temp(ct cmp) {
+			
+		}
+
+		
+
+		virtual comp *clone() {
+		//causes a memory error in test 2
+			return new temp<ct>(cmp);
+		}
+
+	private:
+		ct cmp;
+	};
+
+	
+	/* Instance variables */
+
+	BSTNode *root;                  /* Pointer to the root of the tree */
+	int nodeCount;                  /* Number of entries in the map    */
+	comp *cmpp;               /* Pointer to the comparator       */
+
+	//need for test 2
+	ValueType *addNode(BSTNode * & t, const KeyType & key, bool & heightFlag) {
+		heightFlag = false;
+		if (t == NULL) {
+			t = new BSTNode();
+			t->key = key;
+			t->value = ValueType();
+			t->bf = BST_IN_BALANCE;
+			t->left = t->right = NULL;
+			heightFlag = true;
+			nodeCount++;
+			return &t->value;
+		}
+		int sign=1 ;
+		if (sign == 0) return &t->value;
+		ValueType *vp = NULL;
+		int bfDelta = BST_IN_BALANCE;
+		if (sign < 0) {
+			vp = addNode(t->left, key, heightFlag);
+			if (heightFlag) bfDelta = BST_LEFT_HEAVY;
+		}
+		else {
+			vp = addNode(t->right, key, heightFlag);
+			if (heightFlag) bfDelta = BST_RIGHT_HEAVY;
+		}
+		heightFlag = (bfDelta != 0 && t->bf != BST_IN_BALANCE);
+		return vp;
+	}
+
+	
+	//needed for test 1 & 2
+	void deepCopy(const Map & other) {
+		nodeCount = other.nodeCount;
+		cmpp = (other.cmpp == NULL) ? NULL : other.cmpp->clone();
+	}
+
+
+	/**********************************************************
+		* BINARY SEARCH TREE ITERATOR
+		* Forward and reverse iterator through a BST
+		* USING THE BST to do everything really...
+		*********************************************************/
+	template <class K, class V>
+	class MapIterator
+	{
+	public:
+		// constructors
+		MapIterator() : it(NULL) {  }
+		MapIterator(BSTIterator <Pair <K, V> > & s) { it = s; }
+		MapIterator(const MapIterator <K, V> & rhs) { it = rhs.it; }
+		
+		
+	private:
+		BSTIterator <Pair <K, V> > it;
+	};
+};
+
+	
+
+#endif // MAP_Hpair.h0000600003530400007650000000502112733302507011772 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Week 10, Pair
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    This program will implement a pair: two values
+ ************************************************************************/
+
+#ifndef PAIR_H
+#define PAIR_H
+
+#include <iostream>  // for ISTREAM and OSTREAM
+
+/**********************************************
+ * PAIR
+ * This class couples together a pair of values, which may be of
+ * different types (T1 and T2). The individual values can be
+ * accessed through its public members first and second.
+ *
+ * Additionally, when compairing two pairs, only T1 is compared. This
+ * is a key in a name-value pair.
+ ***********************************************/
+template <class T1, class T2>
+class Pair
+{
+public:
+   // constructors
+   Pair() {}
+   Pair(const T1 & first, const T2 & second) : first(first), second(second) {}
+   Pair(const Pair <T1, T2> & rhs) : first(rhs.first), second(rhs.second) {}
+
+   // copy the values
+   Pair <T1, T2> & operator = (const Pair <T1, T2> & rhs)
+   {
+      first  = rhs.first;
+      second = rhs.second;
+      return *this;
+   }
+
+   // constant fetchers
+   const T1 & getFirst()  const { return first;  }
+   const T2 & getSecond() const { return second; }
+   
+   // compare Pairs.  Only first will be compared!
+   bool operator >  (const Pair & rhs) const { return first >  rhs.first; }
+   bool operator >= (const Pair & rhs) const { return first >= rhs.first; }
+   bool operator <  (const Pair & rhs) const { return first <  rhs.first; }
+   bool operator <= (const Pair & rhs) const { return first <= rhs.first; }
+   bool operator == (const Pair & rhs) const { return first == rhs.first; }
+   bool operator != (const Pair & rhs) const { return first != rhs.first; }
+   
+   // these are public.  We cannot validate!
+   T1 first;
+   T2 second;
+};
+
+/*****************************************************
+ * PAIR INSERTION
+ * Display a pair for debug purposes
+ ****************************************************/
+template <class T1, class T2>
+inline std::ostream & operator << (std::ostream & out, const Pair <T1, T2> & rhs)
+{
+   out << '(' << rhs.first << ", " << rhs.second << ')';
+   return out;
+}
+
+/*****************************************************
+ * PAIR EXTRACTION
+ * input a pair
+ ****************************************************/
+template <class T1, class T2>
+inline std::istream & operator >> (std::istream & in, Pair <T1, T2> & rhs)
+{
+   in >> rhs.first >> rhs.second;
+   return in;
+}
+
+#endif // PAIR_H
+stack.h0000600003530400007650000001355012733303626012155 0ustar  cs235s3g5student/***********************************************************************
+ * Module:
+ *    Lesson 02, Stack
+ *    Brother Helfrich, CS 235
+ * Author:
+ *    Br. Helfrich
+ * Summary:
+ *    This program will implement a stack
+ ************************************************************************/
+
+#ifndef STACK_H
+#define STACK_H
+
+#include <cassert>  // because I am paranoid
+
+/**************************************************
+ * STACK
+ * First-in-Last-out data structure
+ *************************************************/
+template <class T>
+class Stack
+{
+public:
+   // constructors and destructors
+   Stack() : data(NULL), capacity(0), num(0) {                               }
+   Stack(int capacity)         throw(const char *);
+   Stack(const Stack<T> & rhs) throw(const char *);;
+   ~Stack()                                  { if (!empty()) delete [] data; }
+
+   // assignment operator
+   Stack <T> & operator = (const Stack <T> & rhs) throw (const char *);
+   
+   // standard container interfaces
+   bool empty() const                        { return num == 0;              }
+   int  size () const                        { return num;                   }
+
+   // stack-specific interfaces
+   void pop()                  throw(const char *);
+   T &  top()                  throw(const char *);
+   const T & const_top() const throw(const char *);
+   void push(const T & t)      throw(const char *);
+  
+private:
+   void grow(int capacity = 0) throw(const char *);
+  
+   T * data;             // dynamically allocated data for the stack
+   int capacity;         // the size of the data array
+   int num;              // the number of items currently used in the array
+};
+
+/**********************************************************
+ * STACK :: copy constructor
+ *********************************************************/
+template <class T>
+Stack <T> :: Stack (int newCapacity) throw (const char *)
+{
+   // initially empty
+   data = NULL;
+   capacity = 0;
+   num = 0;
+
+   // allocate the buffer
+   assert(newCapacity >= 0);
+   grow(newCapacity);     // this could throw
+}
+
+/**********************************************************
+ * STACK :: copy constructor
+ *********************************************************/
+template <class T>
+Stack <T> :: Stack (const Stack <T> & rhs) throw (const char *)
+{
+   data = NULL;
+   capacity = 0;
+   num = 0;
+   *this = rhs;
+}
+
+/*********************************************************
+ * STACK :: assign
+ * Copy one stack onto another
+ ********************************************************/
+template <class T>
+Stack<T> & Stack <T> :: operator = (const Stack <T> & rhs) throw (const char *)
+{
+   assert(rhs.capacity >= 0);
+   assert(rhs.num      >= 0);
+   assert(rhs.num <= rhs.capacity);
+
+   // delete the old stack if one exists
+   if (!empty())
+      delete [] data; 
+   data = NULL;
+   capacity = 0;
+   num = 0;
+
+   // do nothing if there is nothing to do
+   if (rhs.empty())
+      return *this;
+
+   // copy the contents of the right-hand-side
+   grow(num = rhs.num);   // this could throw
+   for (int i = 0; i < rhs.num; i++)
+      data[i] = rhs.data[i];
+   
+   return *this;
+}
+
+
+/********************************************************
+ * STACK :: TOP
+ * Returns a reference to the top element in the stack. 
+ *******************************************************/
+template <class T>
+T & Stack <T> :: top() throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to reference the element from an empty Stack";
+   return data[num - 1];
+}
+
+/********************************************************
+ * STACK :: TOP
+ * Returns a reference to the top element in the stack. 
+ *******************************************************/
+template <class T>
+const T & Stack <T> :: const_top() const throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to reference the element from an empty Stack";
+   return data[num - 1];
+}
+
+/********************************************************
+ * STACK :: POP
+ * Removes the element on top of the stack, effectively reducing its size by
+ * one.
+ *******************************************************/
+template <class T>
+void Stack <T> :: pop() throw(const char *)
+{
+   // if an element is not present in the stack, throw
+   if (empty())
+      throw "ERROR: Unable to pop from an empty Stack";
+   num--;
+}
+
+
+/********************************************************
+ * STACK :: PUSH
+ * Inserts a new element at the top of the stack, above its current
+ * top element. The content of this new element is initialized to a
+ * copy of t.
+ *******************************************************/
+template <class T>
+void Stack <T> :: push(const T & t) throw(const char *)
+{
+   // make sure there is room in our stack
+   if (num == capacity)
+      grow();
+
+   data[num++] = t;
+}
+
+/*********************************************************
+ * STACK :: GROW
+ * Grow the size of the stack to (at a minimum) of a given
+ * size.  If the size is set to zero, then the capacity will
+ * be doubled.  If the stack is currently not empty, the contents
+ * will be copied over to the new buffer
+ *********************************************************/
+template <class T>
+void Stack <T> :: grow(int capacity) throw(const char *)
+{
+   assert(capacity >= 0);
+   assert(num      >= 0);
+   
+   // determine the new buffer size
+   if (capacity == 0)
+      capacity = (this->capacity ? this->capacity * 2 : 2);
+
+   // allocate the new buffer
+   T * dataNew = new/*(std::nothrow)*/ T[capacity];
+   if (NULL == dataNew)
+      throw "ERROR: Unable to allocate a new buffer for Stack";
+   this->capacity = capacity;
+
+   // copy the contents of the old buffer over to the new buffer
+   assert(num <= capacity);
+   if (NULL != data)
+      for (int i = 0; i < num; i++)
+         dataNew[i] = data[i];
+
+   // free the old
+   if (NULL != data)
+      delete [] data;
+   data = dataNew;
+}
+
+#endif // STACK_H
+wordCount.h0000600003530400007650000000112712733302503013022 0ustar  cs235s3g5student/***********************************************************************
+* Header:
+*    WORD COUNT
+* Summary:
+*    This will contain just the prototype for the wordCount()
+*    function
+* Author
+*    <your names here>
+************************************************************************/
+
+#ifndef WORD_COUNT_H
+#define WORD_COUNT_H
+
+/*****************************************************
+ * WORD COUNT
+ * Prompt the user for a file to read, then prompt the
+ * user for words to get the count from
+ *****************************************************/
+void wordCount();
+
+#endif // WORD_COUNT_H
+
+week10.cpp0000600003530400007650000003557112734074265012513 0ustar  cs235s3g5student/***********************************************************************
+* Program:
+*    Week 10, Map and balanced BSTs
+*    Brother Helfrich, CS 235
+* Author:
+*    Br. Helfrich
+* Summary: 
+*    This is a driver program to exercise the Map class.  When you
+*    submit your program, this should not be changed in any way.  That being
+*    said, you may need to modify this once or twice to get it to work.
+************************************************************************/
+
+#include <iostream>      // for CIN and COUT
+#include <string>        // for STRING
+#include "map.h"         // for BST class which should be in bst.h
+#include "wordCount.h"   // for the wordCount() function
+using namespace std;
+
+
+// prototypes for our four test functions
+void testSimple();
+void testAdd();
+void testIterate();
+void testQuery();
+void testSort();
+//void testBalance();
+
+// To get your program to compile, you might need to comment out a few
+// of these. The idea is to help you avoid too many compile errors at once.
+// I suggest first commenting out all of these tests, then try to use only
+// TEST1.  Then, when TEST1 works, try TEST2 and so on.
+#define TEST1   // for testSimple()
+#define TEST2   // for testAdd()
+//#define TEST3   // for testIterate()
+#define TEST4   // for testQuery()
+//#define TESTB   // for testBalance()
+
+/**********************************************************************
+ * MAIN
+ * This is just a simple menu to launch a collection of tests
+ ***********************************************************************/
+int main()
+{
+   // menu
+   cout << "Select the test you want to run:\n";
+   cout << "\t1. Just create and destroy a Map\n";
+   cout << "\t2. The above plus add a few entries\n";
+   cout << "\t3. The above plus display the contents of a Map\n";
+   cout << "\t4. The above plus retrieve entries from the Map\n";
+   cout << "\ta. Count word frequency\n";
+   cout << "\tb. Test tree balancing\n";
+
+   // select
+   char choice;
+   cout << "> ";
+   cin  >> choice;
+   switch (choice)
+   {
+      /*case 'a':
+         wordCount();
+         break;
+      case 'b':
+         testBalance();
+         cout << "Test Balance complete\n";
+         break;*/
+      case '1':
+         testSimple();
+         cout << "Test 1 complete\n";
+         break;
+      case '2':
+         testAdd();
+         cout << "Test 2 complete\n";
+         break;
+      case '3':
+         testIterate();
+         cout << "Test 3 complete\n";
+         break;
+      case '4':
+         testQuery();
+         cout << "Test 4 complete\n";
+         break;
+      default:
+         cout << "Unrecognized command, exiting...\n";
+   }
+
+   return 0;
+}
+
+/*******************************************
+ * TEST SIMPLE
+ * Very simple test for a Map: create and destroy
+ ******************************************/
+void testSimple()
+{
+#ifdef TEST1
+
+  try
+  {
+     // Test 1.a: bool-int Map with default constructor
+     cout << "Create a bool-int Map using default constructor\n";
+     Map <bool, int> m1;
+     cout << "\tSize:     " << m1.size()                   << endl;
+     cout << "\tEmpty?    " << (m1.empty() ? "Yes" : "No") << endl;
+
+     // Test 1.b: double-char Map dynamically allocated
+     cout << "Create a double-char Map dynamically allocated\n";
+     Map <double, char> *pm2 = new Map <double, char>;
+     cout << "\tSize:     " << pm2->size()                   << endl;
+     cout << "\tEmpty?    " << (pm2->empty() ? "Yes" : "No") << endl;
+
+
+     // Test 1.c: copy the Map using the copy constructor
+     {
+        cout << "Create a double-char Map using the copy constructor\n";
+        Map <double, char> m3(*pm2);
+        cout << "\tSize:     " << m3.size()                   << endl;
+        cout << "\tEmpty?    " << (m3.empty() ? "Yes" : "No") << endl;
+     }
+
+     // Test 1.d: copy the Map using the assignment operator
+     cout << "Copy a double-char Map using the assignment operator\n";
+     Map <double, char> m4;
+     m4 = *pm2;
+     delete pm2;
+
+     cout << "\tSize:     " << m4.size()                   << endl;
+     cout << "\tEmpty?    " << (m4.empty() ? "Yes" : "No") << endl;
+  }
+  catch (const char * sError)
+  {
+     cout << sError << endl;
+  }  
+#endif //TEST1
+}
+
+/*******************************************
+ * TEST ADD
+ * Add a few nodes to the Map then
+ * destroy it when done
+ *****************************************/
+void testAdd()
+{
+#ifdef TEST2
+   try
+   {
+      // create
+      cout << "Create an integer-string Map\n";
+      Map <int, string> m1;
+      Map <int, string> m2;
+      cout << "\tEmpty? " << (m1.empty() ? "yes" : "no") << endl;
+      cout << "\tCount: " << m1.size() << endl;
+
+      // fill
+      cout << "Fill with 10 values\n";
+      m1[8]  = string("eight");    //               8
+      m1[4]  = string("four");     //          +----+----+
+      m1[12] = string("twelve");   //          4         12
+      m1[2]  = string("two");      //       +--+--+   +--+--+
+      m1[6]  = string("six");      //       2     6   9     13
+      m1[9]  = string("nine");     //     +-+   +-+   +-+
+      m1[13] = string("thirteen"); //     0     5       11
+      m1[0]  = string("zero");
+      m1[5]  = string("five");
+      m1[11] = string("eleven");
+      m2 = m1;
+      m1.clear();
+      cout << "\tEmpty? " << (m2.empty() ? "yes" : "no") << endl;
+      cout << "\tCount: " << m2.size() << endl;
+
+      // clear
+      cout << "Empty the contents\n";
+      cout << "\tEmpty? " << (m1.empty() ? "yes" : "no") << endl;
+      cout << "\tCount: " << m1.size() << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TEST2   
+}
+
+/*******************************************
+ * DISPLAY
+ * Display the contents of a map
+ ******************************************/
+template <class K, class V>
+ostream & operator << (ostream & out, Map < K, V > & rhs)
+{
+   out << '{';
+
+#ifdef TEST3
+   MapIterator < K, V > it;
+   for (it = rhs.begin(); it != rhs.end(); ++it)
+      out << "  " << *it;
+#endif // TEST3
+
+   out << "  }";
+
+   return out;
+}
+
+/*******************************************
+ * TEST ITERATE
+ * We will build a Map and display the
+ * contents on the screen
+ ******************************************/
+void testIterate()
+{
+#ifdef TEST3
+   cout.setf(ios::fixed | ios::showpoint);
+   cout.precision(1);   
+
+   //
+   // An empty map
+   //
+   try
+   {
+      cout << "Create an empty bool-bool Map\n";
+      Map <bool, bool> m;
+      cout << "\tEmpty?    " << (m.empty() ? "yes" : "no") << endl;
+      cout << "\tCount:    " << m.size()                   << endl;
+      cout << "\tContents: " << m                          << endl;
+   }
+   catch (const char * s)
+   {
+      cout << "Thrown exception: " << s << endl;
+   }
+
+   //
+   // a non-trivial map
+   //
+   try
+   {
+      Map <string, int> m1;
+      Map <string, int> m2;
+
+      // fill the tree
+      cout << "Create a string-integer map that is filled with: "
+           << " f c i b e g j a d h\n";
+      m1[string("f")] = 6; 
+      m1[string("c")] = 3;   //               f
+      m1[string("i")] = 9;   //          +----+----+
+      m1[string("b")] = 2;   //          c         i
+      m1[string("e")] = 5;   //       +--+--+   +--+--+
+      m1[string("g")] = 7;   //       b     e   g     j
+      m1[string("j")] = 10;  //     +-+   +-+   +-+
+      m1[string("a")] = 1;   //     a     d       h
+      m1[string("d")] = 4; 
+      m1[string("h")] = 8;
+
+      // show the contents of the map
+      cout << "\tEmpty?    " << (m1.empty() ? "yes" : "no") << endl;
+      cout << "\tCount:    " << m1.size()                   << endl;
+      cout << "\tContents: " << m1                          << endl;
+
+      // copy the map and destroy the original
+      m2 = m1;
+      m1.clear();
+      m1[string("the answer")] = 42;
+      cout << "Copy the map and destroy the original\n";
+      cout << "\tEmpty?    " << (m2.empty() ? "yes" : "no") << endl;
+      cout << "\tCount:    " << m2.size()                   << endl;
+      cout << "\tContents: " << m2                          << endl;
+
+      // test the backwards iterator
+      cout << "The map displayed backwards\n";
+      cout << "\t{";
+      MapIterator < string, int > it;
+      for (it = m2.rbegin(); it != m2.rend(); --it)
+         cout << "  " << *it;
+      cout << "  }\n";
+   }
+   catch (const char * s)
+   {
+      cout << "Thrown exception: " << s << endl;
+   }
+#endif // TEST3
+}
+
+/*******************************************
+ * TEST QUERY
+ * Prompt the user for items to put in the map
+ * and then allow the user to query for items
+ *******************************************/
+void testQuery()
+{
+#ifdef TEST4
+   try
+   {
+      // create the map
+      Map <char, string> m;
+      char letter;
+      string word;
+
+      // fill the map
+      cout << "Please enter a letter word pair. "
+           << "Enter ! for the letter when finished.\n";
+      cout << "\t> ";
+      cin  >> letter >> word;
+      while (letter != '!')
+      {
+         m[letter] = word;
+         cout << "\t> ";
+         cin  >> letter >> word;
+      }
+      
+      // display what was found
+      cout << "There are " << m.size() << " items in the map\n";
+      cout << "The contents of the map are: " << m << endl;
+
+      // prompt for the values in the map
+      cout << "Please enter the letter to be found. Enter ! when finished.\n";
+      cout << "\t> ";
+      cin  >> letter;
+      while (letter != '!')
+      {
+         cout << "The letter '"
+              << letter
+              << "' corresponds to \""
+              << m[letter]
+              << "\"\n";
+         cout << "\t> ";
+         cin  >> letter;
+      }
+   }
+   catch (const char * s)
+   {
+      cout << "Thrown exception: " << s << endl;
+   }
+#endif // TEST4
+}
+
+/******************************************
+ * DISPLAY A TREE
+ * Display the contents of a BST using an iterator
+ ******************************************/
+template <class T>
+ostream & operator << (ostream & out, BST <T> & rhs)
+{
+   out << '{';
+
+#ifdef TESTB
+   BSTIterator <T> it;
+   for (it = rhs.begin(); it != rhs.end(); ++it)
+      out << "  " << *it;
+#endif // TESTB
+
+   out << "  }";
+   return out;
+}
+
+
+/**************************************************
+ * TEST BALANCE
+ * Test if a given tree is balanced
+ *************************************************/
+void testBalance()
+{
+#ifdef TESTB
+   try
+   {
+      cout << "Create a simple Binary Search Tree\n";
+      BST <int> tree;
+      BinaryNode <int> * root;
+
+      // Case 1: Add a black root
+      tree.insert(60);                           //      (60 b)
+      root = tree.getRoot();
+      assert(root->isRed == false);
+      cout << "\tPass Case 1\n";
+
+      // Case 2: Add two children which will be red
+      tree.insert(50);                           //      (60 b)
+      tree.insert(70);                           //   +----+-----+
+      assert(root->pRight->isRed == true);       // (50 r)     (70 r)
+      assert(root->pLeft->isRed == true);
+      cout << "\tPass Case 2\n";
+
+      // Case 3: Add a child which should cause 50 and 70 to turn black
+      tree.insert(20);                            //          (60 b)
+      assert(root->isRed == false);               //      +-----+-----+
+      assert(root->data  == 60);                  //    (50 b)      (70 b)
+      assert(root->pRight->isRed == false);       //   +--+
+      assert(root->pRight->data  == 70);          //(20 r)
+      assert(root->pLeft->isRed == false);
+      assert(root->pLeft->data  == 50);
+      assert(root->pLeft->pLeft->isRed == true);
+      assert(root->pLeft->pLeft->data  == 20);
+      cout << "\tPass Case 3\n";
+
+      // Case 4a: Add a child to 20 which should cause a right rotation on 50
+      tree.insert(10);                            //           60b
+      assert(root->isRed == false);               //      +-----+-----+
+      assert(root->data  == 60);                  //     20b         70b
+      assert(root->pRight->isRed == false);       //   +--+--+
+      assert(root->pRight->data  == 70);          // 10r     50r
+      assert(root->pLeft->isRed == false);
+      assert(root->pLeft->data  == 20);
+      assert(root->pLeft->pLeft->isRed == true);
+      assert(root->pLeft->pLeft->data  == 10);
+      assert(root->pLeft->pRight->isRed == true);
+      assert(root->pLeft->pRight->data  == 50);
+      cout << "\tPass Case 4a\n";
+
+      // Case 4b: Add 30 (Case 3 then 2) followed by 40 (Case 4b)
+      tree.insert(30); // cause 3, followed by 2
+      tree.insert(40); // cause 4b
+      assert(root->isRed == false);              //              60b
+      assert(root->data  == 60);                 //       +-------+-------+
+      assert(root->pRight->isRed == false);      //      20r              70b
+      assert(root->pRight->data  == 70);         //  +----+-----+
+      assert(root->pLeft->isRed == true);        // 10b        40b
+      assert(root->pLeft->data  == 20);          //         +---+---+       
+      assert(root->pLeft->pLeft->isRed == false);//        30r      50r
+      assert(root->pLeft->pLeft->data  == 10);
+      assert(root->pLeft->pRight->isRed == false);
+      assert(root->pLeft->pRight->data  == 40);
+      assert(root->pLeft->pRight->pRight->isRed == true);
+      assert(root->pLeft->pRight->pRight->data  == 50);
+      assert(root->pLeft->pRight->pLeft->isRed == true);
+      assert(root->pLeft->pRight->pLeft->data  == 30);
+      cout << "\tPass Case 4b\n";
+
+      // Case 4c: Add 100 (Case 2) followed by 110 (Case 4c) rotate left
+      tree.insert(100);   // case 2
+      tree.insert(110);   // case 4c
+      assert(root->isRed == false);               //         60b
+      assert(root->data  == 60);                  //  +-------+-------+
+      assert(root->pRight->isRed == false);       // ...             100b
+      assert(root->pRight->data  == 100);         //              +----+-----+
+      assert(root->pRight->pRight->isRed == true);//             70r       110r
+      assert(root->pRight->pRight->data  == 110); //
+      assert(root->pRight->pLeft->isRed == true);
+      assert(root->pRight->pLeft->data  == 70); 
+      cout << "\tPass Case 4c\n";
+
+      // Case 4d: Add 90 (Case 3 then 2) followed by 80 (Case 4d)
+      tree.insert(90);    // case 3 followed by 2
+      tree.insert(80);    // case 4d
+      assert(root->isRed == false);                //         60b
+      assert(root->data  == 60);                   //  +-------+-------+
+      assert(root->pRight->isRed == true);         // ...             100r
+      assert(root->pRight->data  == 100);          //              +----+-----+
+      assert(root->pRight->pRight->isRed == false);//             80b      110b
+      assert(root->pRight->pRight->data  == 110);  //          +---+---+
+      assert(root->pRight->pLeft->isRed == false); //         70r    90r
+      assert(root->pRight->pLeft->data  == 80);
+      assert(root->pRight->pLeft->pLeft->isRed == true);
+      assert(root->pRight->pLeft->pLeft->data  == 70);
+      assert(root->pRight->pLeft->pRight->isRed == true);
+      assert(root->pRight->pLeft->pRight->data  == 90);   
+      cout << "\tPass Case 4d\n";
+
+      // make sure it all works as we expect
+      cout << "Final tree: " << tree << endl;
+   }
+   catch (const char * error)
+   {
+      cout << error << endl;
+   }
+#endif // TESTB
+}
+wordCount.cpp0000600003530400007650000000233212733307457013371 0ustar  cs235s3g5student#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <map>
+#include <string>
+ 
+using namespace std;
+ 
+class WordCounter
+{
+public:
+    double value;
+    WordCounter() : value( 0 ) {}
+     
+    void operator++ (int) { value++; }
+};
+ 
+ 
+ostream& operator<<(ostream& st, WordCounter& wc )
+{
+    return st << wc.value;
+}
+ 
+string path ;
+ 
+void wordCount()
+{
+//variables
+    map<string, WordCounter> counter; 
+    ifstream input;
+	string tok;  
+	
+	//prompt for file
+cout << "What is the filename to be counted?"; 
+cin >> path; 
+	
+	//open
+    input.open( path.c_str() );
+ 
+ //if can't open error
+    if ( !input )
+    {
+        cout << "Error in opening file.\n";
+        return;
+    }
+ 
+    
+
+//get word 
+cout << "What word whose frequency is to be found. Type ! when done\n"; 
+
+//put in loop
+do
+{
+ 
+cout << ">"; 
+cin >> tok; 
+
+	//count
+    while ( true )
+    {
+        input >> tok;
+         
+        if ( input )
+        {
+            counter[ tok ]++;
+        }
+        else break;     
+    }
+ 
+  
+ //output 
+	cout <<"\t"
+			<< tok
+             << " : "
+             << counter[tok]
+             << endl;
+	
+	
+	}
+	while (tok != "!");
+ 
+    return;
+}makefile0000600003530400007650000000162612733654660012407 0ustar  cs235s3g5student###############################################################
+# Program:
+#     Week 10, Map
+#     Brother JonesL, CS235
+# Author:
+#     John Vehikite, Tiffany Gohnert
+# Summary:
+#     <put a description here>
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: week10.o wordCount.o
+	g++ -o a.out week10.o wordCount.o 
+	tar -cf week10.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      week10.o       : the driver program
+#      wordCount.o    : the wordCount() function
+##############################################################
+week10.o: bnode.h bst.h pair.h map.h week10.cpp
+	g++ -c week10.cpp
+
+wordCount.o: map.h wordCount.h wordCount.cpp bnode.h bst.h
+	g++ -c wordCount.cpp 
